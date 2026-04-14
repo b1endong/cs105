@@ -8,6 +8,16 @@ export default function RoadRow({rowIndex, speed, cars, metadata}) {
 
     const Y = rowIndex * TILE_SIZE;
 
+    const stripeSpacing = 3; // Khoảng cách giữa các vạch kẻ đường
+    const stripes = [];
+    for (
+        let i = -(TILE_PER_ROW - 1) / 2;
+        i < TILE_PER_ROW / 2 + 1;
+        i += stripeSpacing
+    ) {
+        stripes.push(i);
+    }
+
     return (
         <group position={[0, Y, 0]}>
             {/* Mặt đường */}
@@ -18,7 +28,7 @@ export default function RoadRow({rowIndex, speed, cars, metadata}) {
                 <meshPhongMaterial color="#3a3a3a" />
             </mesh>
             {/* Vạch kẻ đường */}
-            {[-3, 0, 3].map((i) => (
+            {stripes.map((i) => (
                 <mesh
                     key={i}
                     position={[i * TILE_SIZE, 0, TILE_HEIGHT / 2 + 1]}

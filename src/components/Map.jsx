@@ -7,10 +7,9 @@ export default function Map() {
     const metadata = {tilesPerRow, tileSize, tilesHeight};
 
     // Row 0→192, trung tâm ≈ z=96 → dịch ngược -96 để map vào giữa màn hình
-    const centerOffset = -tileSize * 1.5;
 
     return (
-        <group position={[0, 0, centerOffset]}>
+        <group position={[0, 0, 0]}>
             <ForestRow
                 rowIndex={0}
                 trees={[
