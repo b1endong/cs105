@@ -43,6 +43,21 @@ export default function Player({playerPosRef, obstaclesRef}) {
             if (newX < -HALF_ROW || newX > HALF_ROW) return;
             if (newRow < 0) return;
 
+            // Check chướng ngại vật (cây) ở vị trí mới
+            const targetWorldX = newX * tileSize;
+
+            const hitTree = obstaclesRef.current.find(
+                (o) =>
+                    o.rowIndex === newRow &&
+                    o.type === "tree" &&
+                    o.x === targetWorldX,
+            );
+
+            // Nếu ô đích có cây -> Return ngay lập tức, không làm gì cả
+            if (hitTree) {
+                return;
+            }
+
             // Cập nhật grid position
             playerPosRef.current = {x: newX, rowIndex: newRow};
 
@@ -64,7 +79,7 @@ export default function Player({playerPosRef, obstaclesRef}) {
         if (!meshRef.current) return;
         const a = anim.current;
 
-        if (a.progress < 1 ){
+        if (a.progress < 1) {
             a.progress = Math.min(1, a.progress + delta / MOVE_DURATION);
             const t = a.progress;
 
@@ -75,9 +90,9 @@ export default function Player({playerPosRef, obstaclesRef}) {
             // Hop arc trên Z: sin(0→π) tạo hình vòm
             const baseZ = tilesHeight / 2 + tileSize * 0.45;
             meshRef.current.position.z =
-            baseZ + Math.sin(t * Math.PI) * tileSize * 0.6;
+                baseZ + Math.sin(t * Math.PI) * tileSize * 0.6;
         }
-        
+
         if (a.progress < 0.7) return;
         // Cập nhật playerPosRef để kiểm tra va chạm chính xác khi đang di chuyển
         const playerX = meshRef.current.position.x;
@@ -105,10 +120,8 @@ export default function Player({playerPosRef, obstaclesRef}) {
             alert("u stupid 💀");
         } finally {
             window.location.reload();
-        };
+        }
     }
-    
-    
 
     return (
         <mesh ref={meshRef} position={[0, 0, tilesHeight / 2 + s * 0.45]}>

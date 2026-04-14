@@ -1,3 +1,5 @@
+import {useLayoutEffect} from "react";
+
 export default function ForestRow({rowIndex, trees, metadata, obstaclesRef}) {
     const TILE_SIZE = metadata.tileSize;
     const TILE_HEIGHT = metadata.tilesHeight;
