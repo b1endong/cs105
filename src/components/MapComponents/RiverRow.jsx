@@ -10,8 +10,6 @@ export default function RiverRow({rowIndex, speed, logs, metadata}) {
 
     return (
         <group position={[0, Y, 0]}>
-            {" "}
-            // ← đổi từ [0,0,Z] sang [0,Y,0]
             <mesh>
                 <boxGeometry
                     args={[TILE_SIZE * TILE_PER_ROW, TILE_SIZE, TILE_HEIGHT]}
@@ -26,15 +24,16 @@ export default function RiverRow({rowIndex, speed, logs, metadata}) {
                     speed={speed}
                     TILE_SIZE={TILE_SIZE}
                     TILE_HEIGHT={TILE_HEIGHT}
+                    TILE_PER_ROW={TILE_PER_ROW}
                 />
             ))}
         </group>
     );
 }
 
-function Log({initialX, length, speed, TILE_SIZE, TILE_HEIGHT}) {
+function Log({initialX, length, speed, TILE_SIZE, TILE_HEIGHT, TILE_PER_ROW}) {
     const ref = useRef();
-    const BOUNDARY = TILE_SIZE * 6;
+    const BOUNDARY = (TILE_SIZE * TILE_PER_ROW) / 2 + TILE_SIZE;
     const s = TILE_SIZE;
 
     useFrame((_, delta) => {

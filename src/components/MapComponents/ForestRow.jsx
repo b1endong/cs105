@@ -1,4 +1,4 @@
-export default function ForestRow({rowIndex, trees, metadata}) {
+export default function ForestRow({rowIndex, trees, metadata, obstaclesRef}) {
     const TILE_SIZE = metadata.tileSize;
     const TILE_HEIGHT = metadata.tilesHeight;
     const TILE_PER_ROW = metadata.tilesPerRow;
@@ -21,13 +21,43 @@ export default function ForestRow({rowIndex, trees, metadata}) {
                     color={tree.color}
                     TILE_SIZE={TILE_SIZE}
                     TILE_HEIGHT={TILE_HEIGHT}
+                    rowIndex={rowIndex}
+                    obstaclesRef={obstaclesRef}
+                    obstacleId={`tree-${rowIndex}-${i}`}
                 />
             ))}
         </group>
     );
 }
 
-function Tree({x, color, TILE_SIZE, TILE_HEIGHT}) {
+function Tree({
+    x,
+    color,
+    TILE_SIZE,
+    TILE_HEIGHT,
+    rowIndex,
+    obstaclesRef,
+    obstacleId,
+}) {
+    useLayoutEffect(() => {
+        const entry = {
+            id: obstacleId,
+            type: "tree",
+            rowIndex: rowIndex,
+            x: x,
+        };
+
+        obstaclesRef.current.push(entry);
+
+        return () => {
+            if (obstaclesRef && obstaclesRef.current) {
+                obstaclesRef.current = obstaclesRef.current.filter(
+                    (o) => o.id !== id,
+                );
+            }
+        };
+    }, []);
+
     const s = TILE_SIZE;
     return (
         <group position={[x, 0, TILE_HEIGHT / 2]}>

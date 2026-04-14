@@ -3,7 +3,7 @@ import RoadRow from "./MapComponents/RoadRow";
 import RiverRow from "./MapComponents/RiverRow";
 import {tilesPerRow, tileSize, tilesHeight} from "../metadata/constants";
 
-export default function Map() {
+export default function Map({obstaclesRef}) {
     const metadata = {tilesPerRow, tileSize, tilesHeight};
 
     // Row 0→192, trung tâm ≈ z=96 → dịch ngược -96 để map vào giữa màn hình
@@ -17,16 +17,18 @@ export default function Map() {
                     {x: 2, color: "#3CB371"},
                 ]}
                 metadata={metadata}
+                obstaclesRef={obstaclesRef}
             />
 
             <RoadRow
                 rowIndex={1}
                 speed={2}
                 cars={[
-                    {initialX: -6, color: "#d9534f"},
+                    {initialX: -5, color: "#d9534f"},
                     {initialX: 1, color: "#f0ad4e"},
                 ]}
                 metadata={metadata}
+                obstaclesRef={obstaclesRef}
             />
 
             <ForestRow
@@ -36,6 +38,7 @@ export default function Map() {
                     {x: 4, color: "#3CB371"},
                 ]}
                 metadata={metadata}
+                obstaclesRef={obstaclesRef}
             />
 
             <RoadRow
@@ -46,6 +49,7 @@ export default function Map() {
                     {initialX: 5, color: "#5cb85c"},
                 ]}
                 metadata={metadata}
+                obstaclesRef={obstaclesRef}
             />
 
             <ForestRow
@@ -55,6 +59,7 @@ export default function Map() {
                     {x: 3, color: "#3CB371"},
                 ]}
                 metadata={metadata}
+                obstaclesRef={obstaclesRef}
             />
 
             <RiverRow
@@ -65,6 +70,7 @@ export default function Map() {
                     {initialX: 3, length: 3},
                 ]}
                 metadata={metadata}
+                obstaclesRef={obstaclesRef}
             />
         </group>
     );
