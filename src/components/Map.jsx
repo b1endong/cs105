@@ -2,6 +2,7 @@ import ForestRow from "./MapComponents/ForestRow";
 import RoadRow from "./MapComponents/RoadRow";
 import RiverRow from "./MapComponents/RiverRow";
 import {tilesPerRow, tileSize, tilesHeight} from "../metadata/constants";
+import mapData from "../metadata/mapData.json";
 
 export default function Map({obstaclesRef}) {
     const metadata = {tilesPerRow, tileSize, tilesHeight};
@@ -10,68 +11,42 @@ export default function Map({obstaclesRef}) {
 
     return (
         <group position={[0, 0, 0]}>
-            <ForestRow
-                rowIndex={0}
-                trees={[
-                    {x: -3, color: "#2E8B57"},
-                    {x: 2, color: "#3CB371"},
-                ]}
-                metadata={metadata}
-                obstaclesRef={obstaclesRef}
-            />
-
-            <RoadRow
-                rowIndex={1}
-                speed={2}
-                cars={[
-                    {initialX: -5, color: "#d9534f"},
-                    {initialX: 1, color: "#f0ad4e"},
-                ]}
-                metadata={metadata}
-                obstaclesRef={obstaclesRef}
-            />
-
-            <ForestRow
-                rowIndex={2}
-                trees={[
-                    {x: -5, color: "#2E8B57"},
-                    {x: 4, color: "#3CB371"},
-                ]}
-                metadata={metadata}
-                obstaclesRef={obstaclesRef}
-            />
-
-            <RoadRow
-                rowIndex={3}
-                speed={-2.5}
-                cars={[
-                    {initialX: -2, color: "#5bc0de"},
-                    {initialX: 5, color: "#5cb85c"},
-                ]}
-                metadata={metadata}
-                obstaclesRef={obstaclesRef}
-            />
-
-            <ForestRow
-                rowIndex={4}
-                trees={[
-                    {x: -7, color: "#2E8B57"},
-                    {x: 3, color: "#3CB371"},
-                ]}
-                metadata={metadata}
-                obstaclesRef={obstaclesRef}
-            />
-
-            <RiverRow
-                rowIndex={5}
-                speed={1.5}
-                logs={[
-                    {initialX: -4, length: 2},
-                    {initialX: 3, length: 3},
-                ]}
-                metadata={metadata}
-                obstaclesRef={obstaclesRef}
-            />
+            {mapData.map((row, index) => {
+                switch (row.type) {
+                    case "forest":
+                        return (
+                            <ForestRow
+                                key={index}
+                                rowIndex={index}
+                                trees={row.trees}
+                                metadata={metadata}
+                                obstaclesRef={obstaclesRef}
+                            />
+                        );
+                    case "road":
+                        return (
+                            <RoadRow
+                                key={index}
+                                rowIndex={index}
+                                speed={row.speed}
+                                cars={row.cars}
+                                metadata={metadata}
+                                obstaclesRef={obstaclesRef}
+                            />
+                        );
+                    case "river":
+                        return (
+                            <RiverRow
+                                key={index}
+                                rowIndex={index}
+                                speed={row.speed}
+                                logs={row.logs}
+                                metadata={metadata}
+                                obstaclesRef={obstaclesRef}
+                            />
+                        );
+                }
+            })}
         </group>
     );
 }

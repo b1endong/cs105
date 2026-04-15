@@ -1,17 +1,22 @@
 import {tileSize, tilesHeight, tilesPerRow} from "../metadata/constants.js";
 import {useRef, useEffect} from "react";
 import {useFrame} from "@react-three/fiber";
+import PlayerModel from "../model/PlayerModel.jsx";
 
 const MOVE_DURATION = 0.12;
 const HALF_ROW = Math.floor(tilesPerRow / 2);
+
+const logOffset = 0.125;
 
 function overlaps1D(centerA, halfA, centerB, halfB) {
     return Math.abs(centerA - centerB) < halfA + halfB;
 }
 
-export default function Player({playerPosRef, obstaclesRef}) {
+export default function Player({playerPosRef, obstaclesRef, riverRowSet}) {
     const meshRef = useRef();
     const s = tileSize;
+
+    const isDeadRef = useRef(false);
 
     const anim = useRef({
         startX: 0,
@@ -23,10 +28,13 @@ export default function Player({playerPosRef, obstaclesRef}) {
 
     useEffect(() => {
         const onKey = (e) => {
+            if (isDeadRef.current) return;
+
             // Chờ animation hiện tại xong mới nhận input tiếp
             if (anim.current.progress < 1) return;
 
             const {x, rowIndex} = playerPosRef.current;
+            const roundedX = Math.round(x);
             let dx = 0,
                 dy = 0;
 
@@ -36,7 +44,7 @@ export default function Player({playerPosRef, obstaclesRef}) {
             else if (e.key === "ArrowRight" || e.key === "d") dx = 1;
             else return;
 
-            const newX = x + dx;
+            const newX = roundedX + dx;
             const newRow = rowIndex + dy;
 
             // Giới hạn biên
@@ -77,6 +85,9 @@ export default function Player({playerPosRef, obstaclesRef}) {
 
     useFrame((_, delta) => {
         if (!meshRef.current) return;
+
+        if (isDeadRef.current) return;
+
         const a = anim.current;
 
         if (a.progress < 1) {
@@ -112,21 +123,54 @@ export default function Player({playerPosRef, obstaclesRef}) {
             die();
             return;
         }
+
+        if (a.progress < 1) return; // Chỉ kiểm tra khi đã di chuyển xong
+
+        if (riverRowSet.has(playerRow)) {
+            // Nếu đang ở trên sông, kiểm tra có đứng trên khúc gỗ nào không
+            const onLog = sameRow.find(
+                (o) =>
+                    o.type === "log" &&
+                    overlaps1D(playerX, playerHalfSize, o.x, o.width / 2),
+            );
+
+            if (!onLog) {
+                die();
+                return; // Nếu không đứng trên khúc gỗ nào -> chết
+            }
+
+            meshRef.current.position.x += onLog.velocityX || 0;
+            anim.current.startX = meshRef.current.position.x;
+            anim.current.targetX = meshRef.current.position.x;
+            playerPosRef.current.x = meshRef.current.position.x / tileSize;
+            meshRef.current.position.z =
+                tilesHeight / 2 + s * logOffset + s * 0.45;
+        }
+
+        if (
+            Math.abs(meshRef.current.position.x) >
+            HALF_ROW * tileSize + tileSize * 0.5
+        ) {
+            die();
+            return; // Nếu trôi ra ngoài biên -> chết
+        }
     });
 
     function die() {
+        if (isDeadRef.current) return;
+        isDeadRef.current = true;
         // Reset về vị trí ban đầu
         try {
             alert("u stupid 💀");
+            console.log("Player died. Resetting position.");
         } finally {
             window.location.reload();
         }
     }
 
     return (
-        <mesh ref={meshRef} position={[0, 0, tilesHeight / 2 + s * 0.45]}>
-            <boxGeometry args={[s * 0.6, s * 0.6, s * 0.9]} />
-            <meshPhongMaterial color={0xfffff8} />
-        </mesh>
+        <group ref={meshRef} position={[0, 0, tilesHeight / 2 + s * 0.45]}>
+            <PlayerModel s={s} />
+        </group>
     );
 }
