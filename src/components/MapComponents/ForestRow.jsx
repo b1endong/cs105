@@ -1,5 +1,7 @@
 import {useLayoutEffect} from "react";
 
+const GROUND_OFFSET = 20;
+
 export default function ForestRow({rowIndex, trees, metadata, obstaclesRef}) {
     const TILE_SIZE = metadata.tileSize;
     const TILE_HEIGHT = metadata.tilesHeight;
@@ -11,7 +13,11 @@ export default function ForestRow({rowIndex, trees, metadata, obstaclesRef}) {
             {/* Nền cỏ */}
             <mesh>
                 <boxGeometry
-                    args={[TILE_SIZE * TILE_PER_ROW, TILE_SIZE, TILE_HEIGHT]}
+                    args={[
+                        TILE_SIZE * TILE_PER_ROW,
+                        TILE_SIZE,
+                        TILE_HEIGHT + GROUND_OFFSET,
+                    ]}
                 />
                 <meshPhongMaterial color="#5a8a30" />
             </mesh>
@@ -62,7 +68,7 @@ function Tree({
 
     const s = TILE_SIZE;
     return (
-        <group position={[x, 0, TILE_HEIGHT / 2]}>
+        <group position={[x, 0, TILE_HEIGHT + GROUND_OFFSET / 2]}>
             {/* Thân */}
             <mesh position={[0, 0, s * 0.25]}>
                 <boxGeometry args={[s * 0.25, s * 0.25, s * 0.5]} />

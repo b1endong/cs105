@@ -2,6 +2,7 @@ import {tileSize, tilesHeight, tilesPerRow} from "../metadata/constants.js";
 import {useRef, useEffect} from "react";
 import {useFrame} from "@react-three/fiber";
 import PlayerModel from "../model/PlayerModel.jsx";
+import {rotate} from "three/tsl";
 
 const MOVE_DURATION = 0.12;
 const HALF_ROW = Math.floor(tilesPerRow / 2);
@@ -38,11 +39,19 @@ export default function Player({playerPosRef, obstaclesRef, riverRowSet}) {
             let dx = 0,
                 dy = 0;
 
-            if (e.key === "ArrowUp" || e.key === "w") dy = 1;
-            else if (e.key === "ArrowDown" || e.key === "s") dy = -1;
-            else if (e.key === "ArrowLeft" || e.key === "a") dx = -1;
-            else if (e.key === "ArrowRight" || e.key === "d") dx = 1;
-            else return;
+            if (e.key === "ArrowUp" || e.key === "w") {
+                dy = 1;
+                meshRef.current.rotation.z = Math.PI;
+            } else if (e.key === "ArrowDown" || e.key === "s") {
+                dy = -1;
+                meshRef.current.rotation.z = 0;
+            } else if (e.key === "ArrowLeft" || e.key === "a") {
+                dx = -1;
+                meshRef.current.rotation.z = -Math.PI / 2;
+            } else if (e.key === "ArrowRight" || e.key === "d") {
+                dx = 1;
+                meshRef.current.rotation.z = Math.PI / 2;
+            } else return;
 
             const newX = roundedX + dx;
             const newRow = rowIndex + dy;
@@ -169,7 +178,11 @@ export default function Player({playerPosRef, obstaclesRef, riverRowSet}) {
     }
 
     return (
-        <group ref={meshRef} position={[0, 0, tilesHeight / 2 + s * 0.45]}>
+        <group
+            ref={meshRef}
+            position={[0, 0, tilesHeight / 2 + s * 0.45]}
+            rotation={[0, 0, Math.PI]}
+        >
             <PlayerModel s={s} />
         </group>
     );

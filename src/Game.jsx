@@ -5,7 +5,7 @@ import Map from "./components/Map.jsx";
 import mapData from "./metadata/mapData.json";
 
 export default function Game() {
-    const playerPosRef = useRef({x: 0, rowIndex: 0});
+    const playerPosRef = useRef({x: 0, rowIndex: 0, rotateAngle: 0});
     const obstaclesRef = useRef([]);
 
     const riverRowIndices = mapData
