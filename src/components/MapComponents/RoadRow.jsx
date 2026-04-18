@@ -1,5 +1,6 @@
 import {useRef, useLayoutEffect} from "react";
 import {useFrame} from "@react-three/fiber";
+import CarModel from "../../model/CarModel";
 
 export default function RoadRow({
     rowIndex,
@@ -76,6 +77,8 @@ function Car({
     const ref = useRef();
     const BOUNDARY = (TILE_SIZE * TILE_PER_ROW) / 2 + TILE_SIZE; // Giới hạn để reset vị trí xe
     const s = TILE_SIZE;
+    let carRotation = 0;
+    if (speed > 0) carRotation = Math.PI; // Xe đi từ trái sang phải
 
     useLayoutEffect(() => {
         const entry = {
@@ -107,17 +110,12 @@ function Car({
     });
 
     return (
-        <group ref={ref} position={[initialX, 0, TILE_HEIGHT / 2]}>
-            {/* Thân xe */}
-            <mesh position={[0, 0, s * 0.2]}>
-                <boxGeometry args={[s * 1.4, s * 0.6, s * 0.35]} />
-                <meshPhongMaterial color={color} />
-            </mesh>
-            {/* Mui xe */}
-            <mesh position={[0, 0, s * 0.48]}>
-                <boxGeometry args={[s * 0.8, s * 0.55, s * 0.28]} />
-                <meshPhongMaterial color={color} />
-            </mesh>
+        <group
+            ref={ref}
+            position={[initialX, 0, TILE_HEIGHT / 2]}
+            rotation={[0, 0, carRotation]}
+        >
+            <CarModel s={s} color={color} />
         </group>
     );
 }

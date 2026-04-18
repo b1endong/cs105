@@ -4,4 +4,4 @@ const tilesPerRow = maxTilesSize - minTilesSize + 1;
 const tilesHeight = 1.5;
 const tileSize = 64;
 
-export {tilesPerRow, tileSize, tilesHeight};
+export {tilesPerRow, tileSize, tilesHeight, minTilesSize, maxTilesSize};

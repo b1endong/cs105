@@ -1,5 +1,7 @@
 import {useRef, useLayoutEffect} from "react";
 import {useFrame} from "@react-three/fiber";
+import LogModel from "../../model/LogModel";
+import RiverModel from "../../model/RiverModel";
 
 export default function RiverRow({
     rowIndex,
@@ -16,12 +18,7 @@ export default function RiverRow({
 
     return (
         <group position={[0, Y, 0]}>
-            <mesh>
-                <boxGeometry
-                    args={[TILE_SIZE * TILE_PER_ROW, TILE_SIZE, TILE_HEIGHT]}
-                />
-                <meshPhongMaterial color="#1a6b9a" />
-            </mesh>
+            <RiverModel s={TILE_SIZE} W={TILE_SIZE * TILE_PER_ROW} />
             {logs.map((log, i) => (
                 <Log
                     key={i}
@@ -91,10 +88,7 @@ function Log({
 
     return (
         <group ref={ref} position={[initialX, 0, TILE_HEIGHT / 2]}>
-            <mesh>
-                <boxGeometry args={[s * length, s * 0.6, s * 0.25]} />
-                <meshPhongMaterial color="#8B5E3C" />
-            </mesh>
+            <LogModel s={s} length={length} />
         </group>
     );
 }

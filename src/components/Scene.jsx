@@ -1,6 +1,9 @@
 import {Canvas, useFrame, useThree} from "@react-three/fiber";
 import {OrbitControls} from "@react-three/drei";
 import {tileSize, tilesPerRow} from "../metadata/constants.js";
+import generatedRow from "../ultis/generatedRow.js";
+
+const mapData = generatedRow;
 
 function CameraFollow({playerPosRef}) {
     const {camera} = useThree();
@@ -42,7 +45,7 @@ export default function Scene({children, playerPosRef}) {
                 {/* <OrbitControls makeDefault /> */}
                 <axesHelper args={[500]} />
                 <ambientLight />
-                <directionalLight position={[-100, -100, 200]} />
+                <directionalLight position={[-200, -200, 300]} />
                 {children}
             </Canvas>
         </div>

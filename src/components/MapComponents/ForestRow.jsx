@@ -1,4 +1,6 @@
 import {useLayoutEffect} from "react";
+import TreeModel from "../../model/TreeModel";
+import ForestModel from "../../model/ForestModel";
 
 const GROUND_OFFSET = 20;
 
@@ -11,16 +13,11 @@ export default function ForestRow({rowIndex, trees, metadata, obstaclesRef}) {
     return (
         <group position={[0, Y, 0]}>
             {/* Nền cỏ */}
-            <mesh>
-                <boxGeometry
-                    args={[
-                        TILE_SIZE * TILE_PER_ROW,
-                        TILE_SIZE,
-                        TILE_HEIGHT + GROUND_OFFSET,
-                    ]}
-                />
-                <meshPhongMaterial color="#5a8a30" />
-            </mesh>
+            <ForestModel
+                s={TILE_SIZE}
+                W={TILE_SIZE * TILE_PER_ROW}
+                rowIndex={rowIndex}
+            />
 
             {trees.map((tree, i) => (
                 <Tree
@@ -68,22 +65,8 @@ function Tree({
 
     const s = TILE_SIZE;
     return (
-        <group position={[x, 0, TILE_HEIGHT + GROUND_OFFSET / 2]}>
-            {/* Thân */}
-            <mesh position={[0, 0, s * 0.25]}>
-                <boxGeometry args={[s * 0.25, s * 0.25, s * 0.5]} />
-                <meshPhongMaterial color="#8B5E3C" />
-            </mesh>
-            {/* Tán lá tầng 1 */}
-            <mesh position={[0, 0, s * 0.7]}>
-                <boxGeometry args={[s * 0.7, s * 0.7, s * 0.5]} />
-                <meshPhongMaterial color={color} />
-            </mesh>
-            {/* Tán lá tầng 2 */}
-            <mesh position={[0, 0, s * 1.05]}>
-                <boxGeometry args={[s * 0.5, s * 0.5, s * 0.4]} />
-                <meshPhongMaterial color={color} />
-            </mesh>
+        <group position={[x, 0, TILE_HEIGHT]}>
+            <TreeModel s={s} color={color} />
         </group>
     );
 }
