@@ -57,7 +57,7 @@ function Tree({
         return () => {
             if (obstaclesRef && obstaclesRef.current) {
                 obstaclesRef.current = obstaclesRef.current.filter(
-                    (o) => o.id !== id,
+                    (o) => o.id !== obstacleId,
                 );
             }
         };

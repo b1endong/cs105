@@ -5,30 +5,11 @@ import {
     minTilesSize,
     maxTilesSize,
 } from "../metadata/constants";
-// {
-//     type: "forest",
-//     trees: [
-//         {x: -3, color: "#2E8B57"},
-//         {x: 2, color: "#3CB371"},
-//         {x: 6, color: "#228B22"},
-//     ],
-// },
-// {
-//     type: "road",
-//     speed: 2,
-//     cars: [
-//         {initialX: -5, color: "#d9534f"},
-//         {initialX: 1, color: "#f0ad4e"},
-//     ],
-// },
-// {
-//     type: "river",
-//     speed: 3,
-//     logs: [
-//         {initialX: -5, length: 2},
-//         {initialX: 2, length: 3},
-//     ],
-// },
+
+// 3 forest : 2 car : 1 river — nghiêng về an toàn, vừa phải
+const ROW_TYPES = ["forest", "forest", "forest", "car", "car", "river"];
+// Không được có quá 2 rows nguy hiểm (car + river) liên tiếp
+const MAX_CONSECUTIVE_DANGEROUS = 2;
 
 function randomGreen() {
     const greens = ["#2E8B57", "#3CB371", "#228B22", "#006400", "#32CD32"];
@@ -40,11 +21,14 @@ function randomCarColor() {
     return colors[Math.floor(Math.random() * colors.length)];
 }
 
-function generatedRow(type, rowIndex) {
-    if (type == "forest") {
+export function generateRow(type, rowIndex) {
+    if (type === "forest") {
         const trees = [];
         for (let i = minTilesSize; i <= maxTilesSize; i++) {
-            if (Math.random() > 0.5) {
+            // Bỏ qua ô x=0 ở row 0 (vị trí spawn của player)
+            if (rowIndex === 0 && i === 0) continue;
+            // Xác suất 0.35 → rừng thưa hơn, luôn có đường đi
+            if (Math.random() < 0.35) {
                 const color = randomGreen();
                 trees.push({x: i, color});
             }
@@ -54,8 +38,10 @@ function generatedRow(type, rowIndex) {
 
     if (type === "car") {
         const speed = (Math.random() * 2 + 1) * (Math.random() > 0.5 ? 1 : -1);
-        const cars = Array.from({length: 3}, (_, i) => ({
-            initialX: Math.random() * 20 - 10,
+        // 2-3 xe, vị trí ngẫu nhiên → một số xe tự nhiên bị trùng
+        const carCount = Math.random() < 0.5 ? 2 : 3;
+        const cars = Array.from({length: carCount}, () => ({
+            initialX: Math.random() * 18 - 9,
             color: randomCarColor(),
         }));
         return {type, rowIndex, speed, cars};
@@ -64,7 +50,7 @@ function generatedRow(type, rowIndex) {
     if (type === "river") {
         const speed =
             (Math.random() * 1.5 + 0.5) * (Math.random() > 0.5 ? 1 : -1);
-        const logs = Array.from({length: 3}, (_, i) => ({
+        const logs = Array.from({length: 3}, () => ({
             initialX: Math.random() * 20 - 10,
             length: Math.floor(Math.random() * 2) + 2,
         }));
@@ -72,15 +58,25 @@ function generatedRow(type, rowIndex) {
     }
 }
 
-function generateMap(rowCount = 20) {
-    const types = ["forest", "forest", "car", "car", "river"];
-    return Array.from({length: rowCount}, (_, i) => {
-        const type =
-            i === 0
-                ? "forest"
-                : types[Math.floor(Math.random() * types.length)];
-        return generateRow(type, i);
-    });
+// Picks a random row type, capping consecutive dangerous (non-forest) rows
+export function pickRowType(consecutiveDangerous) {
+    const available =
+        consecutiveDangerous >= MAX_CONSECUTIVE_DANGEROUS
+            ? ["forest"]
+            : ROW_TYPES;
+    return available[Math.floor(Math.random() * available.length)];
 }
 
-export default {generateMap};
+export function generateMap(rowCount = 20) {
+    const rows = [];
+    let consecutiveDangerous = 0;
+
+    for (let i = 0; i < rowCount; i++) {
+        const type = i === 0 ? "forest" : pickRowType(consecutiveDangerous);
+        consecutiveDangerous = type !== "forest" ? consecutiveDangerous + 1 : 0;
+        rows.push(generateRow(type, i));
+    }
+    return rows;
+}
+
+export default {generateMap, generateRow};

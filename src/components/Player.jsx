@@ -13,7 +13,12 @@ function overlaps1D(centerA, halfA, centerB, halfB) {
     return Math.abs(centerA - centerB) < halfA + halfB;
 }
 
-export default function Player({playerPosRef, obstaclesRef, riverRowSet}) {
+export default function Player({
+    playerPosRef,
+    obstaclesRef,
+    riverRowSet,
+    addRow,
+}) {
     const meshRef = useRef();
     const s = tileSize;
 
@@ -77,6 +82,9 @@ export default function Player({playerPosRef, obstaclesRef, riverRowSet}) {
 
             // Cập nhật grid position
             playerPosRef.current = {x: newX, rowIndex: newRow};
+
+            // Chỉ thêm row mới khi tiến về phía trước
+            if (dy > 0 && addRow) addRow();
 
             // Bắt đầu animation
             anim.current = {
