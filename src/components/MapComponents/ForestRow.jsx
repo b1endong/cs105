@@ -1,8 +1,7 @@
 import {useLayoutEffect} from "react";
 import TreeModel from "../../model/TreeModel";
 import ForestModel from "../../model/ForestModel";
-
-const GROUND_OFFSET = 20;
+import {GROUND_OFFSET} from "../../metadata/constants";
 
 export default function ForestRow({rowIndex, trees, metadata, obstaclesRef}) {
     const TILE_SIZE = metadata.tileSize;

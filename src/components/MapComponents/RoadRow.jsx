@@ -1,6 +1,7 @@
 import {useRef, useLayoutEffect} from "react";
 import {useFrame} from "@react-three/fiber";
 import CarModel from "../../model/CarModel";
+import {STRIPE_SPACING} from "../../metadata/constants";
 
 export default function RoadRow({
     rowIndex,
@@ -15,12 +16,11 @@ export default function RoadRow({
 
     const Y = rowIndex * TILE_SIZE;
 
-    const stripeSpacing = 3; // Khoảng cách giữa các vạch kẻ đường
     const stripes = [];
     for (
         let i = -(TILE_PER_ROW - 1) / 2;
         i < TILE_PER_ROW / 2 + 1;
-        i += stripeSpacing
+        i += STRIPE_SPACING
     ) {
         stripes.push(i);
     }

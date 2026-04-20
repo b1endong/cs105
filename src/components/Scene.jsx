@@ -1,20 +1,17 @@
 import {Canvas, useFrame, useThree} from "@react-three/fiber";
-import {OrbitControls} from "@react-three/drei";
-import {tileSize, tilesPerRow} from "../metadata/constants.js";
-import generatedRow from "../ultis/generatedRow.js";
-
-const mapData = generatedRow;
+import {
+    tileSize,
+    CAMERA_START_ROW,
+    BASE_CAMERA_Y,
+} from "../metadata/constants.js";
 
 function CameraFollow({playerPosRef}) {
     const {camera} = useThree();
 
     useFrame(() => {
-        // Camera Y = -300 (offset gốc) + số row player đã đi
-        // rowIndex=0 → targetY=-300 (không đổi)
-        // rowIndex=1 → targetY=-236 (camera đi lên 64 units)
-        const targetY = playerPosRef.current.rowIndex * tileSize;
-
-        // Lerp mượt để camera không giật
+        const playerRow = playerPosRef.current.rowIndex;
+        const scrolledRows = Math.max(0, playerRow - CAMERA_START_ROW);
+        const targetY = BASE_CAMERA_Y + scrolledRows * tileSize;
         camera.position.y += (targetY - camera.position.y) * 0.1;
     });
 
@@ -37,13 +34,13 @@ export default function Scene({children, playerPosRef}) {
                 orthographic={true}
                 camera={{
                     up: [0, 0, 1],
-                    position: [300, -300, 300],
+                    position: [300, BASE_CAMERA_Y, 300],
                     far: 5000,
+                    
                 }}
+                style={{width: "100%", height: "100%"}}
             >
                 <CameraFollow playerPosRef={playerPosRef} />
-                {/* <OrbitControls makeDefault /> */}
-                <axesHelper args={[500]} />
                 <ambientLight />
                 <directionalLight position={[-200, -200, 300]} />
                 {children}

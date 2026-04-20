@@ -4,4 +4,38 @@ const tilesPerRow = maxTilesSize - minTilesSize + 1;
 const tilesHeight = 1.5;
 const tileSize = 64;
 
-export {tilesPerRow, tileSize, tilesHeight, minTilesSize, maxTilesSize};
+// Player
+const MOVE_DURATION = 0.12;
+const LOG_HALF_H = 0.125;
+
+// Camera / Scene
+const CAMERA_START_ROW = 2;
+const BASE_CAMERA_Y = -300;
+
+// Map generation
+const WINDOW_SIZE = 20;
+const MAX_CONSECUTIVE_DANGEROUS = 10;
+const ROW_TYPES = ["forest", "car", "car", "car", "river", "river"];
+
+// ForestRow
+const GROUND_OFFSET = 20;
+
+// RoadRow
+const STRIPE_SPACING = 3;
+
+export {
+    tilesPerRow,
+    tileSize,
+    tilesHeight,
+    minTilesSize,
+    maxTilesSize,
+    MOVE_DURATION,
+    LOG_HALF_H,
+    CAMERA_START_ROW,
+    BASE_CAMERA_Y,
+    WINDOW_SIZE,
+    MAX_CONSECUTIVE_DANGEROUS,
+    ROW_TYPES,
+    GROUND_OFFSET,
+    STRIPE_SPACING,
+};

@@ -4,12 +4,9 @@ import {
     tilesHeight,
     minTilesSize,
     maxTilesSize,
+    ROW_TYPES,
+    MAX_CONSECUTIVE_DANGEROUS,
 } from "../metadata/constants";
-
-// 3 forest : 2 car : 1 river — nghiêng về an toàn, vừa phải
-const ROW_TYPES = ["forest", "car", "car", "car", "river", "river"];
-// Không được có quá 2 rows nguy hiểm (car + river) liên tiếp
-const MAX_CONSECUTIVE_DANGEROUS = 10;
 
 function randomGreen() {
     const greens = ["#2E8B57", "#3CB371", "#228B22", "#006400", "#32CD32"];
@@ -48,8 +45,7 @@ export function generateRow(type, rowIndex) {
     }
 
     if (type === "river") {
-        const speed =
-            (Math.random() * 2 + 1) * (Math.random() > 0.5 ? 2 : -2);
+        const speed = (Math.random() * 2 + 1) * (Math.random() > 0.5 ? 2 : -2);
         const logs = Array.from({length: 3}, () => ({
             initialX: Math.random() * 20 - 10,
             length: Math.floor(Math.random() * 2) + 2,

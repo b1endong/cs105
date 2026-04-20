@@ -1,9 +1,7 @@
 // useMap.js
 import {useState, useCallback, useRef} from "react";
 import {generateRow, generateMap, pickRowType} from "./generatedRow";
-
-// Số rows luôn hiển thị — cửa sổ trượt cố định, không batch
-const WINDOW_SIZE = 20;
+import {WINDOW_SIZE} from "../metadata/constants";
 
 export function useMap() {
     // Lưu trạng thái seed rule giữa các lần gọi addRow
