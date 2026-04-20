@@ -32,7 +32,7 @@ export default function CarModel({s, color}) {
             </mesh>
 
             {/* Windshields */}
-            <mesh position={[-s * 0.46, 0, s * 0.46]}>
+            <mesh position={[-s * 0.35, 0, s * 0.46]}>
                 <boxGeometry args={[s * 0.06, s * 0.52, s * 0.22]} />
                 <meshPhongMaterial color="#90CAF9" transparent opacity={0.85} />
             </mesh>

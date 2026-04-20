@@ -7,9 +7,9 @@ import {
 } from "../metadata/constants";
 
 // 3 forest : 2 car : 1 river — nghiêng về an toàn, vừa phải
-const ROW_TYPES = ["forest", "forest", "forest", "car", "car", "river"];
+const ROW_TYPES = ["forest", "car", "car", "car", "river", "river"];
 // Không được có quá 2 rows nguy hiểm (car + river) liên tiếp
-const MAX_CONSECUTIVE_DANGEROUS = 2;
+const MAX_CONSECUTIVE_DANGEROUS = 10;
 
 function randomGreen() {
     const greens = ["#2E8B57", "#3CB371", "#228B22", "#006400", "#32CD32"];
@@ -37,7 +37,7 @@ export function generateRow(type, rowIndex) {
     }
 
     if (type === "car") {
-        const speed = (Math.random() * 2 + 1) * (Math.random() > 0.5 ? 1 : -1);
+        const speed = (Math.random() * 2 + 1) * (Math.random() > 0.5 ? 2 : -2);
         // 2-3 xe, vị trí ngẫu nhiên → một số xe tự nhiên bị trùng
         const carCount = Math.random() < 0.5 ? 2 : 3;
         const cars = Array.from({length: carCount}, () => ({
@@ -49,7 +49,7 @@ export function generateRow(type, rowIndex) {
 
     if (type === "river") {
         const speed =
-            (Math.random() * 1.5 + 0.5) * (Math.random() > 0.5 ? 1 : -1);
+            (Math.random() * 2 + 1) * (Math.random() > 0.5 ? 2 : -2);
         const logs = Array.from({length: 3}, () => ({
             initialX: Math.random() * 20 - 10,
             length: Math.floor(Math.random() * 2) + 2,
