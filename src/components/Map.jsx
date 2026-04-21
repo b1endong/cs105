@@ -7,7 +7,7 @@ export default function Map({obstaclesRef, rows}) {
     const metadata = {tilesPerRow, tileSize, tilesHeight};
 
     return (
-        <group position={[0, 0, 0]}>
+        <group position={[0, -250, 0]}>
             {rows.map((row) => {
                 switch (row.type) {
                     case "forest":

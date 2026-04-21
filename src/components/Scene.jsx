@@ -36,7 +36,7 @@ export default function Scene({children, playerPosRef}) {
                     up: [0, 0, 1],
                     position: [300, BASE_CAMERA_Y, 300],
                     far: 5000,
-                    
+                    zoom: 1.2,
                 }}
                 style={{width: "100%", height: "100%"}}
             >

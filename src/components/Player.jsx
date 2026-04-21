@@ -33,7 +33,7 @@ export default function Player({
         startX: 0,
         startY: 0,
         targetX: 0,
-        targetY: 0,
+        targetY: 0 - 250,
         progress: 1,
     });
 
@@ -91,7 +91,7 @@ export default function Player({
                 startX: anim.current.targetX,
                 startY: anim.current.targetY,
                 targetX: newX * tileSize,
-                targetY: newRow * tileSize,
+                targetY: newRow * tileSize - 250,
                 progress: 0,
             };
         };
@@ -172,7 +172,7 @@ export default function Player({
     return (
         <group
             ref={meshRef}
-            position={[0, 0, tilesHeight / 2 + s * 0.45]}
+            position={[0, -250, tilesHeight / 2 + s * 0.45]}
             rotation={[0, 0, Math.PI]}
         >
             <PlayerModel s={s} />
