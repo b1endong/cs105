@@ -52,6 +52,10 @@ export function generateRow(type, rowIndex) {
         }));
         return {type, rowIndex, speed, logs};
     }
+
+    if (type === "train") {
+        return {type, rowIndex};
+    }
 }
 
 // Picks a random row type, capping consecutive dangerous (non-forest) rows

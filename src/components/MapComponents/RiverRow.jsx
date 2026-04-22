@@ -33,6 +33,7 @@ export default function RiverRow({
                     obstacleId={`log-${rowIndex}-${i}`}
                 />
             ))}
+            
         </group>
     );
 }

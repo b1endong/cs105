@@ -11,7 +11,7 @@ export default function GameOver({score, onRestart}) {
                 background: "rgba(0,0,0,0.55)",
                 backdropFilter: "blur(3px)",
                 zIndex: 100,
-                fontFamily: "'Segoe UI', sans-serif",
+                fontFamily: "'Press Start 2P', system-ui",
             }}
         >
             {/* Card */}
@@ -25,11 +25,17 @@ export default function GameOver({score, onRestart}) {
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
-                    gap: 12,
+                    gap: 25,
                 }}
             >
-                {/* Emoji */}
-                <div style={{fontSize: 64, lineHeight: 1}}>☠️</div>
+                <img
+                    src="public/skull_icon.jpg"
+                    style={{
+                        width: 80,
+                        height: 80,
+                    }}
+                    alt="skull"
+                />
 
                 {/* Title */}
                 <div
@@ -82,6 +88,7 @@ export default function GameOver({score, onRestart}) {
                         letterSpacing: 0.5,
                         boxShadow: "0 4px 12px rgba(67,160,71,0.4)",
                         transition: "transform 0.1s, box-shadow 0.1s",
+                        fontFamily: "'Press Start 2P', system-ui",
                     }}
                     onMouseEnter={(e) => {
                         e.target.style.transform = "scale(1.06)";
@@ -94,7 +101,7 @@ export default function GameOver({score, onRestart}) {
                             "0 4px 12px rgba(67,160,71,0.4)";
                     }}
                 >
-                    Chơi lại
+                    Restart
                 </button>
             </div>
         </div>

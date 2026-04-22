@@ -15,13 +15,22 @@ const BASE_CAMERA_Y = -300;
 // Map generation
 const WINDOW_SIZE = 20;
 const MAX_CONSECUTIVE_DANGEROUS = 10;
-const ROW_TYPES = ["forest", "car", "car", "car", "river", "river"];
+const ROW_TYPES = ["forest", "car", "car", "car", "river", "river", "train"];
 
 // ForestRow
 const GROUND_OFFSET = 20;
 
 // RoadRow
 const STRIPE_SPACING = 3;
+
+// SideWall
+const EXTEND = 1200;
+
+// TrainRow
+const TRAIN_SPEED = 80;
+const WARN_BEFORE = 2.5;
+const COOLDOWN = 8;
+const WAGON_COUNT = 5;
 
 export {
     tilesPerRow,
@@ -38,4 +47,9 @@ export {
     ROW_TYPES,
     GROUND_OFFSET,
     STRIPE_SPACING,
+    EXTEND,
+    TRAIN_SPEED,
+    WARN_BEFORE,
+    WAGON_COUNT,
+    COOLDOWN,
 };

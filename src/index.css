@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Bungee&family=Pixelify+Sans:wght@400;700&family=Press+Start+2P&display=swap');
+
 html,
 body {
     margin: 0;
@@ -6,8 +8,23 @@ body {
     height: 100%;
     overflow: hidden;
     background-color: #E0F7FA;
+    font-family: 'Pixelify Sans', sans-serif;
 }
 
 * {
     box-sizing: border-box;
+}
+
+.game-over-modal {
+    font-family: 'Pixelify Sans', sans-serif;
+}
+
+.game-over-title {
+    color: #d9534f;
+    text-shadow: 2px 2px 0px #000000;
+}
+
+.btn-restart {
+    font-family: inherit;
+    font-weight: bold;
 }

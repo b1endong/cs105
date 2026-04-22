@@ -1,13 +1,14 @@
 import ForestRow from "./MapComponents/ForestRow";
 import RoadRow from "./MapComponents/RoadRow";
 import RiverRow from "./MapComponents/RiverRow";
+import TrainRow from "./MapComponents/TrainRow";
 import {tilesPerRow, tileSize, tilesHeight} from "../metadata/constants";
 
 export default function Map({obstaclesRef, rows}) {
     const metadata = {tilesPerRow, tileSize, tilesHeight};
 
     return (
-        <group position={[0, -250, 0]}>
+        <group position={[-50, -250, 0]}>
             {rows.map((row) => {
                 switch (row.type) {
                     case "forest":
@@ -38,6 +39,15 @@ export default function Map({obstaclesRef, rows}) {
                                 rowIndex={row.rowIndex}
                                 speed={row.speed}
                                 logs={row.logs}
+                                metadata={metadata}
+                                obstaclesRef={obstaclesRef}
+                            />
+                        );
+                    case "train":
+                        return (
+                            <TrainRow
+                                key={row.rowIndex}
+                                rowIndex={row.rowIndex}
                                 metadata={metadata}
                                 obstaclesRef={obstaclesRef}
                             />

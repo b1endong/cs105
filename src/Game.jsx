@@ -3,6 +3,7 @@ import Scene from "./components/Scene.jsx";
 import Player from "./components/Player.jsx";
 import Map from "./components/Map.jsx";
 import GameOver from "./components/GameOver.jsx";
+import Score from "./components/Score.jsx";
 import {useMap} from "./ultis/useMap.js";
 
 export default function Game() {
@@ -50,9 +51,12 @@ export default function Game() {
                     riverRowSet={riverRowsSet}
                     addRow={addRow}
                     onDie={handleDie}
+                    onScoreChange={setScore}
                     minAllowedRowRef={minAllowedRowRef}
                 />
             </Scene>
+
+            <Score score={score} />
 
             {gameOver && <GameOver score={score} onRestart={handleRestart} />}
         </div>

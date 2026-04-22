@@ -22,6 +22,7 @@ export default function Player({
     riverRowSet,
     addRow,
     onDie,
+    onScoreChange,
     minAllowedRowRef,
 }) {
     const meshRef = useRef();
@@ -32,7 +33,7 @@ export default function Player({
     const anim = useRef({
         startX: 0,
         startY: 0,
-        targetX: 0,
+        targetX: 0 - 50,
         targetY: 0 - 250,
         progress: 1,
     });
@@ -84,13 +85,14 @@ export default function Player({
             // → camera đang scroll → Map đang xóa row cũ → cần thêm row mới
             if (dy > 0 && newRow > maxRowReachedRef.current) {
                 maxRowReachedRef.current = newRow;
+                if (onScoreChange) onScoreChange(newRow);
                 if (newRow > CAMERA_START_ROW && addRow) addRow();
             }
 
             anim.current = {
                 startX: anim.current.targetX,
                 startY: anim.current.targetY,
-                targetX: newX * tileSize,
+                targetX: newX * tileSize - 50,
                 targetY: newRow * tileSize - 250,
                 progress: 0,
             };
@@ -117,7 +119,6 @@ export default function Player({
         if (a.progress < 0.7) return;
 
         const playerX = meshRef.current.position.x;
-        console.log("Player X:", playerX);
         const playerRow = playerPosRef.current.rowIndex;
         const playerHalf = s * 0.3;
         const sameRow = obstaclesRef.current.filter(
@@ -172,7 +173,7 @@ export default function Player({
     return (
         <group
             ref={meshRef}
-            position={[0, -250, tilesHeight / 2 + s * 0.45]}
+            position={[-50, -250, tilesHeight / 2 + s * 0.45]}
             rotation={[0, 0, Math.PI]}
         >
             <PlayerModel s={s} />
