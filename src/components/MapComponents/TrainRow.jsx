@@ -52,7 +52,10 @@ export default function TrainRow({rowIndex, metadata, obstaclesRef}) {
     }, []);
 
     const runCycle = () => {
-        if (trainRef.current) trainRef.current.position.x = startX;
+        if (trainRef.current) {
+            trainRef.current.position.x = startX;
+            trainRef.current.visible = true;
+        }
         phaseRef.current = "warning";
         isWarningRef.current = true;
         timerRef.current = setTimeout(() => {
@@ -87,6 +90,7 @@ export default function TrainRow({rowIndex, metadata, obstaclesRef}) {
                 phaseRef.current = "cooldown";
                 isWarningRef.current = false;
                 if (entry) entry.active = false;
+                if (trainRef.current) trainRef.current.visible = false;
                 clearTimeout(timerRef.current);
                 timerRef.current = setTimeout(() => {
                     phaseRef.current = "idle";

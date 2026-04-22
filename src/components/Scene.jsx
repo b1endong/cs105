@@ -42,8 +42,8 @@ export default function Scene({children, playerPosRef}) {
                 }}
                 style={{width: "100%", height: "100%"}}
             >
-                {/* <CameraFollow playerPosRef={playerPosRef} /> */}
-                <OrbitControls makeDefault={true} />
+                <CameraFollow playerPosRef={playerPosRef} />
+                {/* <OrbitControls makeDefault={true} /> */}
                 <DayNightCycle startTime={0.35} />
                 {children}
             </Canvas>
