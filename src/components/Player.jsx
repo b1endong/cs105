@@ -6,9 +6,10 @@ import {
     LOG_HALF_H,
     CAMERA_START_ROW,
 } from "../metadata/constants.js";
-import {useRef, useEffect} from "react";
+import {useRef, useEffect, useState} from "react";
 import {useFrame} from "@react-three/fiber";
 import PlayerModel from "../model/PlayerModel.jsx";
+import DeathExplosion from "./DeathAnimation.jsx";
 
 const HALF_ROW = Math.floor(tilesPerRow / 2);
 
@@ -29,6 +30,7 @@ export default function Player({
     const s = tileSize;
     const isDeadRef = useRef(false);
     const maxRowReachedRef = useRef(0);
+    const [deathPos, setDeathPos] = useState(null);
 
     const anim = useRef({
         startX: 0,
@@ -178,16 +180,32 @@ export default function Player({
     function die() {
         if (isDeadRef.current) return;
         isDeadRef.current = true;
+        const pos = meshRef.current.position;
+        setDeathPos([pos.x, pos.y, pos.z]);
+        meshRef.current.visible = false;
+    }
+
+    function handleExplosionDone() {
         onDie(playerPosRef.current.rowIndex);
     }
 
     return (
-        <group
-            ref={meshRef}
-            position={[-50, -250, tilesHeight / 2 + s * 0.45]}
-            rotation={[0, 0, Math.PI]}
-        >
-            <PlayerModel s={s} />
-        </group>
+        <>
+            <group
+                ref={meshRef}
+                position={[-50, -250, tilesHeight / 2 + s * 0.45]}
+                rotation={[0, 0, Math.PI]}
+            >
+                <PlayerModel s={s} />
+            </group>
+            {/* Render vụ nổ khi chết */}
+            {deathPos && (
+                <DeathExplosion
+                    position={deathPos}
+                    s={s}
+                    onDone={handleExplosionDone}
+                />
+            )}
+        </>
     );
 }

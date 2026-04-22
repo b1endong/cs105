@@ -3,15 +3,15 @@ import React, {useMemo} from "react";
 export default function TreeModel({s, color}) {
     // Tạo một seed ngẫu nhiên dựa trên tọa độ để xác định hình dáng cây
     // Sử dụng useMemo để cây không bị đổi dáng mỗi khi re-render
-    const treeType = useMemo(() => {
+    const {treeType, trunkHeight} = useMemo(() => {
         const seed = Math.floor(Math.random() * 10);
-        if (seed < 3) return "tall_straight"; // Cây cao thẳng
-        if (seed < 6) return "branch_left"; // Cây có nhánh bên trái
-        return "branch_right"; // Cây có nhánh bên phải
+        let treeType;
+        if (seed < 3) treeType = "tall_straight";
+        else if (seed < 6) treeType = "branch_left";
+        else treeType = "branch_right";
+        const trunkHeight = s * (0.4 + Math.floor(Math.random() * 3) / 10);
+        return {treeType, trunkHeight};
     }, []);
-
-    // Random nhẹ chiều cao của thân cây (từ 0.4s đến 0.6s)
-    const trunkHeight = s * (0.4 + Math.floor(Math.random() * 3) / 10);
 
     return (
         <>
