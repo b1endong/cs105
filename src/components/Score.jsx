@@ -12,6 +12,7 @@ export default function Score({score}) {
                 fontSize: 18,
                 fontWeight: 700,
                 color: "#ffffff",
+                pointerEvents: "none",
             }}
         >
             Score: {score}

@@ -135,6 +135,17 @@ export default function Player({
             return;
         }
 
+        const hitTrain = sameRow.find(
+            (o) =>
+                o.type === "train" &&
+                overlaps1D(playerX, playerHalf, o.x, o.width / 2) &&
+                o.active,
+        );
+        if (hitTrain) {
+            die();
+            return;
+        }
+
         if (a.progress < 1) return;
 
         if (riverRowSet.has(playerRow)) {

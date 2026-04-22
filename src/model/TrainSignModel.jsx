@@ -50,13 +50,16 @@ export default function TrainSignModel({s, isWarningRef}) {
                 />
             </mesh>
             {/* Biển X */}
-            <mesh position={[0, -s * 0.1, s * 0.66]}>
+            <mesh
+                position={[0, -s * 0.1, s * 0.66]}
+                rotation={[0, Math.PI / 4, 0]}
+            >
                 <boxGeometry args={[s * 0.28, s * 0.04, s * 0.06]} />
                 <meshPhongMaterial color="#FFFF00" />
             </mesh>
             <group
                 position={[0, -s * 0.1, s * 0.66]}
-                rotation={[0, 0, Math.PI / 4]}
+                rotation={[0, -Math.PI / 4, 0]}
             >
                 <mesh>
                     <boxGeometry args={[s * 0.05, s * 0.04, s * 0.3]} />
@@ -65,7 +68,7 @@ export default function TrainSignModel({s, isWarningRef}) {
             </group>
             <group
                 position={[0, -s * 0.1, s * 0.66]}
-                rotation={[0, 0, -Math.PI / 4]}
+                rotation={[0, Math.PI / 4, 0]}
             >
                 <mesh>
                     <boxGeometry args={[s * 0.05, s * 0.04, s * 0.3]} />

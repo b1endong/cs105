@@ -4,6 +4,8 @@ import {
     CAMERA_START_ROW,
     BASE_CAMERA_Y,
 } from "../metadata/constants.js";
+import {OrbitControls} from "@react-three/drei";
+import DayNightCycle from "../components/DayNightCycle.jsx";
 
 function CameraFollow({playerPosRef}) {
     const {camera} = useThree();
@@ -35,14 +37,14 @@ export default function Scene({children, playerPosRef}) {
                 camera={{
                     up: [0, 0, 1],
                     position: [300, BASE_CAMERA_Y, 300],
-                    far: 5000,
-                    zoom: 1.3,
+                    near: -5000,
+                    far: 7000,
                 }}
                 style={{width: "100%", height: "100%"}}
             >
-                <CameraFollow playerPosRef={playerPosRef} />
-                <ambientLight />
-                <directionalLight position={[-200, -200, 300]} />
+                {/* <CameraFollow playerPosRef={playerPosRef} /> */}
+                <OrbitControls makeDefault={true} />
+                <DayNightCycle startTime={0.35} />
                 {children}
             </Canvas>
         </div>
