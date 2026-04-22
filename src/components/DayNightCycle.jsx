@@ -251,12 +251,12 @@ export default function DayNightCycle({startTime = 0.35}) {
 
             {/* Mặt trời */}
             <group ref={sunGroupRef}>
-                <SunModel s={64} />
+                <SunModel s={32} />
             </group>
 
             {/* Mặt trăng */}
             <group ref={moonGroupRef}>
-                <MoonModel s={64} />
+                <MoonModel s={32} />
             </group>
         </>
     );
