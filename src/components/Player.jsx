@@ -32,11 +32,16 @@ export default function Player({
     const maxRowReachedRef = useRef(0);
     const [deathPos, setDeathPos] = useState(null);
 
+    // Offset giữa hệ tọa độ mesh và hệ tọa độ tile-grid.
+    // Mesh position = tileIndex * tileSize - WORLD_OFFSET_X
+    const WORLD_OFFSET_X = 50;
+    const WORLD_OFFSET_Y = 250;
+
     const anim = useRef({
         startX: 0,
         startY: 0,
-        targetX: 0 - 50,
-        targetY: 0 - 250,
+        targetX: -WORLD_OFFSET_X,
+        targetY: -WORLD_OFFSET_Y,
         progress: 1,
     });
 
@@ -84,18 +89,26 @@ export default function Player({
             playerPosRef.current = {x: newX, rowIndex: newRow};
 
             // Chỉ thêm row khi player đã vượt CAMERA_START_ROW
-            // → camera đang scroll → Map đang xóa row cũ → cần thêm row mới
             if (dy > 0 && newRow > maxRowReachedRef.current) {
                 maxRowReachedRef.current = newRow;
                 if (onScoreChange) onScoreChange(newRow);
                 if (newRow > CAMERA_START_ROW && addRow) addRow();
             }
 
+            // Di chuyển ngang: target = vị trí mesh hiện tại + 1 tile
+            //   → luôn nhảy đúng 1 ô trong world space, không bị ảnh hưởng log drift.
+            // Di chuyển dọc: snap X về grid (vì chuyển sang row khác).
+            const currentMeshX = meshRef.current.position.x;
+            const targetX =
+                dx !== 0
+                    ? currentMeshX + dx * tileSize
+                    : newX * tileSize - WORLD_OFFSET_X;
+
             anim.current = {
-                startX: anim.current.targetX,
-                startY: anim.current.targetY,
-                targetX: newX * tileSize - 50,
-                targetY: newRow * tileSize - 250,
+                startX: currentMeshX,
+                startY: meshRef.current.position.y,
+                targetX,
+                targetY: newRow * tileSize - WORLD_OFFSET_Y,
                 progress: 0,
             };
         };
@@ -108,24 +121,33 @@ export default function Player({
         if (!meshRef.current || isDeadRef.current) return;
 
         const a = anim.current;
-        if (a.progress < 1) {
-            a.progress = Math.min(1, a.progress + delta / MOVE_DURATION);
-            const t = a.progress;
-            meshRef.current.position.x = a.startX + (a.targetX - a.startX) * t;
-            meshRef.current.position.y = a.startY + (a.targetY - a.startY) * t;
-            const baseZ = tilesHeight / 2 + tileSize * 0.45;
-            meshRef.current.position.z =
-                baseZ + Math.sin(t * Math.PI) * tileSize * 0.6;
-        }
-
-        if (a.progress < 0.7) return;
-
-        const playerX = meshRef.current.position.x;
         const playerRow = playerPosRef.current.rowIndex;
         const playerHalf = s * 0.3;
         const sameRow = obstaclesRef.current.filter(
             (o) => o.rowIndex === playerRow,
         );
+
+        // ── Step 1: Hop animation ──
+        // Khi đang nhảy, player bay trong không trung → KHÔNG chịu ảnh hưởng
+        // từ vận tốc gỗ. Điều này đảm bảo:
+        //   - Đi ngược chiều gỗ: tốc độ player không bị triệt tiêu
+        //   - Đi cùng chiều gỗ: tốc độ player không bị cộng thêm
+        if (a.progress < 1) {
+            a.progress = Math.min(1, a.progress + delta / MOVE_DURATION);
+            const t = a.progress;
+            meshRef.current.position.x =
+                a.startX + (a.targetX - a.startX) * t;
+            meshRef.current.position.y =
+                a.startY + (a.targetY - a.startY) * t;
+            const baseZ = tilesHeight / 2 + tileSize * 0.45;
+            meshRef.current.position.z =
+                baseZ + Math.sin(t * Math.PI) * tileSize * 0.6;
+        }
+
+        // ── Step 2: Kiểm tra va chạm xe / tàu (từ 70% animation trở đi) ──
+        if (a.progress < 0.7) return;
+
+        const playerX = meshRef.current.position.x + WORLD_OFFSET_X;
 
         const hitCar = sameRow.find(
             (o) =>
@@ -148,32 +170,42 @@ export default function Player({
             return;
         }
 
-        if (a.progress < 1) return;
-
-        if (riverRowSet.has(playerRow)) {
+        // ── Step 3: Log riding — CHỈ khi đã hạ cánh (progress = 1) ──
+        if (a.progress >= 1 && riverRowSet.has(playerRow)) {
             const onLog = sameRow.find(
                 (o) =>
                     o.type === "log" &&
                     overlaps1D(playerX, playerHalf, o.x, o.width / 2),
             );
+
             if (!onLog) {
                 die();
                 return;
             }
 
-            meshRef.current.position.x += onLog.velocityX || 0;
-            anim.current.startX = meshRef.current.position.x;
-            anim.current.targetX = meshRef.current.position.x;
-            playerPosRef.current.x = meshRef.current.position.x / tileSize;
+            // Player đứng yên trên gỗ → trôi theo gỗ
+            const vx = onLog.velocityX || 0;
+            meshRef.current.position.x += vx;
+            // Đồng bộ anim để lần nhấn phím tiếp theo lấy đúng vị trí
+            a.startX = meshRef.current.position.x;
+            a.targetX = meshRef.current.position.x;
+            // Cập nhật x logic theo drift để khi nhảy khỏi gỗ,
+            // roundedX phản ánh đúng vị trí thực tế của player.
+            playerPosRef.current.x =
+                (meshRef.current.position.x + WORLD_OFFSET_X) / tileSize;
+            // Đặt Z lên trên mặt gỗ
             meshRef.current.position.z =
                 tilesHeight / 2 + s * LOG_HALF_H + s * 0.45;
         }
 
-        if (
-            Math.abs(meshRef.current.position.x) >
-            HALF_ROW * tileSize + tileSize * 0.5
-        ) {
-            die();
+        // ── Step 4: Kiểm tra biên ──
+        if (a.progress >= 1) {
+            if (
+                Math.abs(meshRef.current.position.x + WORLD_OFFSET_X) >
+                HALF_ROW * tileSize + tileSize * 0.5
+            ) {
+                die();
+            }
         }
     });
 
