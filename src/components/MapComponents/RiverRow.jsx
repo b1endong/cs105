@@ -1,7 +1,8 @@
-import {useRef, useLayoutEffect} from "react";
+import {useRef, useLayoutEffect, useState} from "react";
 import {useFrame} from "@react-three/fiber";
 import LogModel from "../../model/LogModel";
 import RiverModel from "../../model/RiverModel";
+import ItemModel from "../../model/ItemModel";
 
 export default function RiverRow({
     rowIndex,
@@ -25,6 +26,7 @@ export default function RiverRow({
                     initialX={log.initialX * TILE_SIZE}
                     length={log.length}
                     speed={speed}
+                    item={log.item}
                     TILE_SIZE={TILE_SIZE}
                     TILE_HEIGHT={TILE_HEIGHT}
                     TILE_PER_ROW={TILE_PER_ROW}
@@ -41,6 +43,7 @@ function Log({
     initialX,
     length,
     speed,
+    item,
     TILE_SIZE,
     TILE_HEIGHT,
     TILE_PER_ROW,
@@ -51,9 +54,10 @@ function Log({
     const ref = useRef();
     const BOUNDARY = (TILE_SIZE * TILE_PER_ROW) / 2 + TILE_SIZE;
     const s = TILE_SIZE;
+    const itemId = `item-${obstacleId}`;
 
     useLayoutEffect(() => {
-        const entry = {
+        const logEntry = {
             id: obstacleId,
             type: "log",
             rowIndex,
@@ -62,13 +66,27 @@ function Log({
             depth: s * 0.6,
             velocityX: 0,
         };
-        obstaclesRef.current = [...obstaclesRef.current, entry];
+        const entries = [logEntry];
+        if (item) {
+            entries.push({
+                id: itemId,
+                type: "item",
+                rowIndex,
+                x: initialX,
+                width: s * 0.5,
+                itemEffect: item,
+                active: true
+            });
+        }
+        obstaclesRef.current = [...obstaclesRef.current, ...entries];
         return () => {
             obstaclesRef.current = obstaclesRef.current.filter(
-                (o) => o.id !== obstacleId,
+                (o) => o.id !== obstacleId && o.id !== itemId,
             );
         };
     }, []);
+
+    const [itemVisible, setItemVisible] = useState(!!item);
 
     useFrame((_, delta) => {
         const dx = speed * s * delta;
@@ -78,6 +96,14 @@ function Log({
             ref.current.position.x = -BOUNDARY;
         if (speed < 0 && ref.current.position.x < -BOUNDARY)
             ref.current.position.x = BOUNDARY;
+
+        if (item) {
+            const itemEntry = obstaclesRef.current.find((o) => o.id === itemId);
+            if (itemEntry) {
+                itemEntry.x = ref.current.position.x;
+                if (!itemEntry.active && itemVisible) setItemVisible(false);
+            }
+        }
 
         const entry = obstaclesRef.current.find((o) => o.id === obstacleId);
         if (entry) {
@@ -89,6 +115,11 @@ function Log({
     return (
         <group ref={ref} position={[initialX, 0, TILE_HEIGHT / 2]}>
             <LogModel s={s} length={length} />
+            {item && itemVisible && (
+                <group position={[0, 0, s * 0.2]}>
+                    <ItemModel s={s} isBuff={item.isBuff} />
+                </group>
+            )}
         </group>
     );
 }

@@ -126,7 +126,7 @@ const _screenUp = new THREE.Vector3();
 const _sunPos = new THREE.Vector3();
 const _moonPos = new THREE.Vector3();
 
-export default function DayNightCycle({startTime = 0.35}) {
+export default function DayNightCycle({startTime = 0.35, activeEffect}) {
     const {scene, camera, controls} = useThree();
 
     const timeRef = useRef(startTime);
@@ -138,7 +138,10 @@ export default function DayNightCycle({startTime = 0.35}) {
 
     useFrame((_, delta) => {
         timeRef.current = (timeRef.current + delta / DAY_DURATION) % 1;
-        const t = timeRef.current;
+        let t = timeRef.current;
+        if (activeEffect?.type === 'foreverNight') {
+            t = 0.0;
+        }
 
         // ── Quỹ đạo quanh trục Y ──
         // angle = 0 → phía trước (Z+), tăng → quay quanh Y
@@ -195,16 +198,25 @@ export default function DayNightCycle({startTime = 0.35}) {
 
         if (ambLightRef.current) {
             ambLightRef.current.color.copy(k.amb);
-            ambLightRef.current.intensity = k.ambI;
+            let ambI = k.ambI;
+            if (activeEffect?.type === 'nightVision' && _sunPos.z <= 0) {
+                ambLightRef.current.color.setHex(0xfff8e1);
+                ambI = 0.9;
+            }
+            ambLightRef.current.intensity = ambI;
         }
 
-        // Mặt trời ở trên trời khi Z > 0
         const isDay = _sunPos.z > 0;
         if (dirLightRef.current) {
             const star = isDay ? _sunPos : _moonPos;
             dirLightRef.current.position.copy(star);
-            dirLightRef.current.color.copy(k.dirC);
-            dirLightRef.current.intensity = k.dirI;
+            if (activeEffect?.type === 'nightVision' && !isDay) {
+                dirLightRef.current.color.setHex(0xfffde0);
+                dirLightRef.current.intensity = 1.6;
+            } else {
+                dirLightRef.current.color.copy(k.dirC);
+                dirLightRef.current.intensity = k.dirI;
+            }
         }
 
         if (hemiLightRef.current) {
@@ -213,9 +225,15 @@ export default function DayNightCycle({startTime = 0.35}) {
                 hemiLightRef.current.groundColor.set(0x4a7c3f);
                 hemiLightRef.current.intensity = 0.5 + k.ambI * 0.4;
             } else {
-                hemiLightRef.current.color.set(0x1a2a4a);
-                hemiLightRef.current.groundColor.set(0x0a1020);
-                hemiLightRef.current.intensity = 0.25;
+                if (activeEffect?.type === 'nightVision') {
+                    hemiLightRef.current.color.setHex(0x4fc3f7);
+                    hemiLightRef.current.groundColor.set(0x4a7c3f);
+                    hemiLightRef.current.intensity = 0.86;
+                } else {
+                    hemiLightRef.current.color.set(0x1a2a4a);
+                    hemiLightRef.current.groundColor.set(0x0a1020);
+                    hemiLightRef.current.intensity = 0.25;
+                }
             }
         }
     });

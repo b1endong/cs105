@@ -1,4 +1,8 @@
-export default function PlayerModel({s}) {
+export default function PlayerModel({s, activeEffect}) {
+    let cloudColor = null;
+    if (activeEffect) {
+        cloudColor = activeEffect.isBuff ? "#ffff00" : "#ff0000";
+    }
     return (
         <>
             {/* === FEET === */}
@@ -137,6 +141,21 @@ export default function PlayerModel({s}) {
                 <boxGeometry args={[s * 0.08, s * 0.08, s * 0.08]} />
                 <meshPhongMaterial color="#EF5350" />
             </mesh>
+
+            {/* === EFFECT CLOUD GLOW === */}
+            {cloudColor && (
+                <mesh position={[0, 0, s * 0.1]}>
+                    <sphereGeometry args={[s * 0.55, 16, 16]} />
+                    <meshStandardMaterial 
+                        color={cloudColor} 
+                        emissive={cloudColor} 
+                        emissiveIntensity={1.5} 
+                        transparent={true} 
+                        opacity={0.4} 
+                        depthWrite={false}
+                    />
+                </mesh>
+            )}
         </>
     );
 }

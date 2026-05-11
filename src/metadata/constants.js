@@ -1,5 +1,5 @@
-const minTilesSize = -8;
-const maxTilesSize = 8;
+const minTilesSize = -12;
+const maxTilesSize = 12;
 const tilesPerRow = maxTilesSize - minTilesSize + 1;
 const tilesHeight = 1.5;
 const tileSize = 64;

@@ -8,6 +8,22 @@ import {
     MAX_CONSECUTIVE_DANGEROUS,
 } from "../metadata/constants";
 
+const BUFFS = ['walkOnWater', 'fly', 'nightVision', 'invincible'];
+const DEBUFFS = ['foreverNight', 'reverseControl', 'randomDeath', 'fastForward'];
+
+function generateItem(rowIndex) {
+    const spawnRate = Math.min(0.1 + rowIndex * 0.005, 0.5);
+    if (Math.random() > spawnRate) return null;
+
+    const buffChance = Math.max(0.8 - rowIndex * 0.01, 0.2);
+    const isBuff = Math.random() < buffChance;
+    
+    const list = isBuff ? BUFFS : DEBUFFS;
+    const type = list[Math.floor(Math.random() * list.length)];
+    
+    return { type, isBuff, startRow: rowIndex };
+}
+
 function randomGreen() {
     const greens = ["#2E8B57", "#3CB371", "#228B22", "#006400", "#32CD32"];
     return greens[Math.floor(Math.random() * greens.length)];
@@ -41,7 +57,15 @@ export function generateRow(type, rowIndex) {
             initialX: Math.random() * 18 - 9,
             color: randomCarColor(),
         }));
-        return {type, rowIndex, speed, cars};
+        
+        const items = [];
+        const item = generateItem(rowIndex);
+        if (item) {
+            item.initialX = Math.floor(Math.random() * 17) - 8;
+            items.push(item);
+        }
+
+        return {type, rowIndex, speed, cars, items};
     }
 
     if (type === "river") {
@@ -50,6 +74,13 @@ export function generateRow(type, rowIndex) {
             initialX: Math.random() * 20 - 10,
             length: Math.floor(Math.random() * 2) + 2,
         }));
+        
+        const item = generateItem(rowIndex);
+        if (item) {
+            const targetLog = logs[Math.floor(Math.random() * logs.length)];
+            targetLog.item = item;
+        }
+
         return {type, rowIndex, speed, logs};
     }
 
@@ -59,21 +90,29 @@ export function generateRow(type, rowIndex) {
 }
 
 // Picks a random row type, capping consecutive dangerous (non-forest) rows
-export function pickRowType(consecutiveDangerous) {
-    const available =
+export function pickRowType(consecutiveDangerous, lastType) {
+    let available =
         consecutiveDangerous >= MAX_CONSECUTIVE_DANGEROUS
             ? ["forest"]
             : ROW_TYPES;
+            
+    if (lastType === "forest") {
+        available = available.filter(t => t !== "forest");
+        if (available.length === 0) available = ["car"];
+    }
+    
     return available[Math.floor(Math.random() * available.length)];
 }
 
 export function generateMap(rowCount = 20) {
     const rows = [];
     let consecutiveDangerous = 0;
+    let lastType = null;
 
     for (let i = 0; i < rowCount; i++) {
-        const type = i === 0 ? "forest" : pickRowType(consecutiveDangerous);
+        const type = i === 0 ? "forest" : pickRowType(consecutiveDangerous, lastType);
         consecutiveDangerous = type !== "forest" ? consecutiveDangerous + 1 : 0;
+        lastType = type;
         rows.push(generateRow(type, i));
     }
     return rows;

@@ -1,12 +1,14 @@
-import {useRef, useLayoutEffect} from "react";
+import {useRef, useLayoutEffect, useState} from "react";
 import {useFrame} from "@react-three/fiber";
 import CarModel from "../../model/CarModel";
+import ItemModel from "../../model/ItemModel";
 import {STRIPE_SPACING} from "../../metadata/constants";
 
 export default function RoadRow({
     rowIndex,
     speed,
     cars,
+    items,
     metadata,
     obstaclesRef,
 }) {
@@ -59,6 +61,51 @@ export default function RoadRow({
                     obstacleId={`car-${rowIndex}-${i}`}
                 />
             ))}
+
+            {items && items.map((item, i) => (
+                <Item
+                    key={`item-${i}`}
+                    item={item}
+                    TILE_SIZE={TILE_SIZE}
+                    TILE_HEIGHT={TILE_HEIGHT}
+                    rowIndex={rowIndex}
+                    obstaclesRef={obstaclesRef}
+                    obstacleId={`item-${rowIndex}-${i}`}
+                />
+            ))}
+        </group>
+    );
+}
+
+function Item({ item, TILE_SIZE, TILE_HEIGHT, rowIndex, obstaclesRef, obstacleId }) {
+    const s = TILE_SIZE;
+    useLayoutEffect(() => {
+        const entry = {
+            id: obstacleId,
+            type: "item",
+            rowIndex,
+            x: item.initialX * s,
+            width: s * 0.5,
+            itemEffect: item,
+            active: true
+        };
+        obstaclesRef.current = [...obstaclesRef.current, entry];
+        return () => {
+            obstaclesRef.current = obstaclesRef.current.filter((o) => o.id !== obstacleId);
+        };
+    }, []);
+
+    const [visible, setVisible] = useState(true);
+    useFrame(() => {
+        const entry = obstaclesRef.current.find((o) => o.id === obstacleId);
+        if (entry && !entry.active && visible) setVisible(false);
+    });
+
+    if (!visible) return null;
+
+    return (
+        <group position={[item.initialX * s, 0, TILE_HEIGHT / 2 + s * 0.2]}>
+            <ItemModel s={s} isBuff={item.isBuff} />
         </group>
     );
 }

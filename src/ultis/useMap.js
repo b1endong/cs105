@@ -6,6 +6,7 @@ import {WINDOW_SIZE} from "../metadata/constants";
 export function useMap() {
     // Lưu trạng thái seed rule giữa các lần gọi addRow
     const consecutiveDangerousRef = useRef(0);
+    const lastTypeRef = useRef(null);
 
     const [rows, setRows] = useState(() => {
         const initial = generateMap(WINDOW_SIZE);
@@ -16,6 +17,7 @@ export function useMap() {
             else break;
         }
         consecutiveDangerousRef.current = count;
+        lastTypeRef.current = initial[initial.length - 1].type;
         return initial;
     });
 
@@ -26,9 +28,10 @@ export function useMap() {
         // Ref luôn là giá trị mới nhất, không bị stale closure
         setRows((prev) => {
             const maxRowIndex = prev[prev.length - 1].rowIndex;
-            const type = pickRowType(consecutiveDangerousRef.current);
+            const type = pickRowType(consecutiveDangerousRef.current, lastTypeRef.current);
             consecutiveDangerousRef.current =
                 type !== "forest" ? consecutiveDangerousRef.current + 1 : 0;
+            lastTypeRef.current = type;
             const newRow = generateRow(type, maxRowIndex + 1);
             // Xóa row đầu tiên (cũ nhất), thêm row mới vào cuối
             return [...prev.slice(1), newRow];

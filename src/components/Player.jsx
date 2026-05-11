@@ -24,13 +24,23 @@ export default function Player({
     addRow,
     onDie,
     onScoreChange,
+    onRowChange,
     minAllowedRowRef,
+    activeEffect,
+    setActiveEffect,
 }) {
     const meshRef = useRef();
     const s = tileSize;
     const isDeadRef = useRef(false);
+    const iFrameRef = useRef(false);
     const maxRowReachedRef = useRef(0);
     const [deathPos, setDeathPos] = useState(null);
+
+    const activeEffectRef = useRef(activeEffect);
+    activeEffectRef.current = activeEffect;
+
+    const riverRowSetRef = useRef(riverRowSet);
+    riverRowSetRef.current = riverRowSet;
 
     // Offset giữa hệ tọa độ mesh và hệ tọa độ tile-grid.
     // Mesh position = tileIndex * tileSize - WORLD_OFFSET_X
@@ -54,16 +64,31 @@ export default function Player({
             let dx = 0,
                 dy = 0;
 
-            if (e.key === "ArrowUp" || e.key === "w") {
+            const currentEffect = activeEffectRef.current;
+
+            if (currentEffect?.type === 'randomDeath' && Math.random() < 0.1) {
+                die();
+                return;
+            }
+
+            let actualKey = e.key;
+            if (currentEffect?.type === 'reverseControl') {
+                if (e.key === 'ArrowUp' || e.key === 'w') actualKey = 'ArrowDown';
+                else if (e.key === 'ArrowDown' || e.key === 's') actualKey = 'ArrowUp';
+                else if (e.key === 'ArrowLeft' || e.key === 'a') actualKey = 'ArrowRight';
+                else if (e.key === 'ArrowRight' || e.key === 'd') actualKey = 'ArrowLeft';
+            }
+
+            if (actualKey === "ArrowUp" || actualKey === "w") {
                 dy = 1;
                 meshRef.current.rotation.z = Math.PI;
-            } else if (e.key === "ArrowDown" || e.key === "s") {
+            } else if (actualKey === "ArrowDown" || actualKey === "s") {
                 dy = -1;
                 meshRef.current.rotation.z = 0;
-            } else if (e.key === "ArrowLeft" || e.key === "a") {
+            } else if (actualKey === "ArrowLeft" || actualKey === "a") {
                 dx = -1;
                 meshRef.current.rotation.z = -Math.PI / 2;
-            } else if (e.key === "ArrowRight" || e.key === "d") {
+            } else if (actualKey === "ArrowRight" || actualKey === "d") {
                 dx = 1;
                 meshRef.current.rotation.z = Math.PI / 2;
             } else return;
@@ -84,9 +109,17 @@ export default function Player({
                     o.type === "tree" &&
                     o.x === newX * tileSize,
             );
-            if (hitTree) return;
+            if (hitTree && currentEffect?.type !== 'fly') return;
 
             playerPosRef.current = {x: newX, rowIndex: newRow};
+            if (onRowChange) onRowChange(newRow);
+
+            if (currentEffect?.type === 'fly' && newRow >= currentEffect.startRow + 5) {
+                setActiveEffect(null);
+            }
+            if (currentEffect?.type === 'walkOnWater' && !riverRowSetRef.current.has(newRow)) {
+                setActiveEffect(null);
+            }
 
             // Chỉ thêm row khi player đã vượt CAMERA_START_ROW
             if (dy > 0 && newRow > maxRowReachedRef.current) {
@@ -127,11 +160,24 @@ export default function Player({
             (o) => o.rowIndex === playerRow,
         );
 
-        // ── Step 1: Hop animation ──
-        // Khi đang nhảy, player bay trong không trung → KHÔNG chịu ảnh hưởng
-        // từ vận tốc gỗ. Điều này đảm bảo:
-        //   - Đi ngược chiều gỗ: tốc độ player không bị triệt tiêu
-        //   - Đi cùng chiều gỗ: tốc độ player không bị cộng thêm
+        const playerX = meshRef.current.position.x + WORLD_OFFSET_X;
+
+        const hitItem = sameRow.find(
+            (o) =>
+                o.type === "item" &&
+                o.active &&
+                overlaps1D(playerX, playerHalf, o.x, o.width / 2),
+        );
+        if (hitItem && activeEffect?.type !== 'fly') {
+            hitItem.active = false;
+            setActiveEffect({ ...hitItem.itemEffect, startRow: playerRow });
+        }
+
+        let targetZ = tilesHeight / 2 + tileSize * 0.45;
+        if (activeEffect?.type === 'fly') {
+            targetZ += tileSize * 1.5;
+        }
+
         if (a.progress < 1) {
             a.progress = Math.min(1, a.progress + delta / MOVE_DURATION);
             const t = a.progress;
@@ -139,35 +185,42 @@ export default function Player({
                 a.startX + (a.targetX - a.startX) * t;
             meshRef.current.position.y =
                 a.startY + (a.targetY - a.startY) * t;
-            const baseZ = tilesHeight / 2 + tileSize * 0.45;
             meshRef.current.position.z =
-                baseZ + Math.sin(t * Math.PI) * tileSize * 0.6;
+                targetZ + Math.sin(t * Math.PI) * tileSize * 0.6;
+        } else {
+            meshRef.current.position.z = targetZ;
         }
 
         // ── Step 2: Kiểm tra va chạm xe / tàu (từ 70% animation trở đi) ──
         if (a.progress < 0.7) return;
 
-        const playerX = meshRef.current.position.x + WORLD_OFFSET_X;
+        if (activeEffect?.type === 'fly') return;
 
         const hitCar = sameRow.find(
             (o) =>
                 o.type === "car" &&
                 overlaps1D(playerX, playerHalf, o.x, o.width / 2),
         );
-        if (hitCar) {
-            die();
-            return;
-        }
-
         const hitTrain = sameRow.find(
             (o) =>
                 o.type === "train" &&
-                overlaps1D(playerX, playerHalf, o.x, o.width / 2) &&
-                o.active,
+                o.active &&
+                overlaps1D(playerX, playerHalf, o.x, o.width / 2),
         );
-        if (hitTrain) {
-            die();
-            return;
+
+        if (hitCar || hitTrain) {
+            if (activeEffect?.type === 'invincible') {
+                if (!iFrameRef.current) {
+                    setActiveEffect(null);
+                    iFrameRef.current = true;
+                    setTimeout(() => {
+                        iFrameRef.current = false;
+                    }, 1000);
+                }
+            } else if (!iFrameRef.current) {
+                die();
+                return;
+            }
         }
 
         // ── Step 3: Log riding — CHỈ khi đã hạ cánh (progress = 1) ──
@@ -179,9 +232,11 @@ export default function Player({
             );
 
             if (!onLog) {
-                die();
-                return;
-            }
+                if (activeEffect?.type !== 'walkOnWater') {
+                    if (!iFrameRef.current) die();
+                    return;
+                }
+            } else {
 
             // Player đứng yên trên gỗ → trôi theo gỗ
             const vx = onLog.velocityX || 0;
@@ -193,9 +248,10 @@ export default function Player({
             // roundedX phản ánh đúng vị trí thực tế của player.
             playerPosRef.current.x =
                 (meshRef.current.position.x + WORLD_OFFSET_X) / tileSize;
-            // Đặt Z lên trên mặt gỗ
-            meshRef.current.position.z =
-                tilesHeight / 2 + s * LOG_HALF_H + s * 0.45;
+                // Đặt Z lên trên mặt gỗ
+                meshRef.current.position.z =
+                    tilesHeight / 2 + s * LOG_HALF_H + s * 0.45;
+            }
         }
 
         // ── Step 4: Kiểm tra biên ──
@@ -228,7 +284,7 @@ export default function Player({
                 position={[-50, -250, tilesHeight / 2 + s * 0.45]}
                 rotation={[0, 0, Math.PI]}
             >
-                <PlayerModel s={s} />
+                <PlayerModel s={s} activeEffect={activeEffect} />
             </group>
             {/* Render vụ nổ khi chết */}
             {deathPos && (

@@ -20,7 +20,7 @@ function CameraFollow({playerPosRef}) {
     return null;
 }
 
-export default function Scene({children, playerPosRef}) {
+export default function Scene({children, playerPosRef, activeEffect}) {
     return (
         <div
             style={{
@@ -35,6 +35,7 @@ export default function Scene({children, playerPosRef}) {
             <Canvas
                 orthographic={true}
                 camera={{
+                    zoom: 1,
                     up: [0, 0, 1],
                     position: [300, BASE_CAMERA_Y, 300],
                     near: -5000,
@@ -44,7 +45,7 @@ export default function Scene({children, playerPosRef}) {
             >
                 <CameraFollow playerPosRef={playerPosRef} />
                 {/* <OrbitControls makeDefault={true} /> */}
-                <DayNightCycle startTime={0.35} />
+                <DayNightCycle startTime={0.35} activeEffect={activeEffect} />
                 {children}
             </Canvas>
         </div>

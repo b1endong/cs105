@@ -9,6 +9,8 @@ import {useMap} from "./ultis/useMap.js";
 export default function Game() {
     const [gameOver, setGameOver] = useState(false);
     const [score, setScore] = useState(0);
+    const [currentRow, setCurrentRow] = useState(0);
+    const [activeEffect, setActiveEffect] = useState(null);
 
     const playerPosRef = useRef({x: 0, rowIndex: 0});
     const obstaclesRef = useRef([]);
@@ -41,10 +43,44 @@ export default function Game() {
         window.location.reload();
     }, []);
 
+    const EffectNotification = () => {
+        if (!activeEffect) return null;
+        
+        const color = activeEffect.isBuff ? "#ffff00" : "#ff4444";
+        const typeStr = activeEffect.type.replace(/([A-Z])/g, ' $1').trim().toUpperCase();
+        
+        let extraText = "";
+        if (activeEffect.type === 'fly') {
+            const stepsLeft = Math.max(0, 5 - (currentRow - activeEffect.startRow));
+            extraText = ` (${stepsLeft})`;
+        }
+        
+        return (
+            <div style={{
+                position: "absolute",
+                top: 20,
+                left: 20,
+                padding: "10px 20px",
+                backgroundColor: "rgba(0, 0, 0, 0.7)",
+                color: color,
+                border: `2px solid ${color}`,
+                borderRadius: "8px",
+                fontFamily: "monospace",
+                fontWeight: "bold",
+                fontSize: "1.2rem",
+                textShadow: "0 0 5px " + color,
+                zIndex: 10
+            }}>
+                {activeEffect.isBuff ? "BUFF" : "DEBUFF"}: {typeStr}{extraText}
+            </div>
+        );
+    };
+
     return (
         <div style={{width: "100vw", height: "100vh", position: "relative"}}>
-            <Scene playerPosRef={playerPosRef}>
-                <Map obstaclesRef={obstaclesRef} rows={rows} />
+            <EffectNotification />
+            <Scene playerPosRef={playerPosRef} activeEffect={activeEffect}>
+                <Map obstaclesRef={obstaclesRef} rows={rows} activeEffect={activeEffect} />
                 <Player
                     playerPosRef={playerPosRef}
                     obstaclesRef={obstaclesRef}
@@ -52,7 +88,10 @@ export default function Game() {
                     addRow={addRow}
                     onDie={handleDie}
                     onScoreChange={setScore}
+                    onRowChange={setCurrentRow}
                     minAllowedRowRef={minAllowedRowRef}
+                    activeEffect={activeEffect}
+                    setActiveEffect={setActiveEffect}
                 />
             </Scene>
 
