@@ -33,7 +33,7 @@ const COOLDOWN = 8;
 const WAGON_COUNT = 20;
 
 // Light
-const DAY_DURATION = 120; // giây
+const DAY_DURATION = 60; // giây
 const ORBIT_R = 800; // bán kính ngang của ellipse (screen X)
 const ORBIT_H = 250; // bán kính dọc của ellipse (screen Y) — thấp hơn để gần map hơn
 
