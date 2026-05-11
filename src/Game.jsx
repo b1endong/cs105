@@ -43,6 +43,22 @@ export default function Game() {
         window.location.reload();
     }, []);
 
+    // Handle timed effects countdown
+    useEffect(() => {
+        if (activeEffect && activeEffect.timeLeft !== undefined) {
+            const interval = setInterval(() => {
+                setActiveEffect(prev => {
+                    if (prev && prev.timeLeft !== undefined && prev.timeLeft !== -1) {
+                        if (prev.timeLeft <= 1) return null;
+                        return { ...prev, timeLeft: prev.timeLeft - 1 };
+                    }
+                    return prev;
+                });
+            }, 1000);
+            return () => clearInterval(interval);
+        }
+    }, [activeEffect?.type, activeEffect?.startRow]);
+
     const EffectNotification = () => {
         if (!activeEffect) return null;
         
@@ -50,9 +66,10 @@ export default function Game() {
         const typeStr = activeEffect.type.replace(/([A-Z])/g, ' $1').trim().toUpperCase();
         
         let extraText = "";
-        if (activeEffect.type === 'fly') {
-            const stepsLeft = Math.max(0, 5 - (currentRow - activeEffect.startRow));
-            extraText = ` (${stepsLeft})`;
+        if (activeEffect.timeLeft !== undefined && activeEffect.timeLeft !== -1) {
+            extraText = ` (${activeEffect.timeLeft}s)`;
+        } else if (activeEffect.movesLeft !== undefined && activeEffect.movesLeft !== -1) {
+            extraText = ` (${activeEffect.movesLeft} moves)`;
         }
         
         return (

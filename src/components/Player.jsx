@@ -5,6 +5,7 @@ import {
     MOVE_DURATION,
     LOG_HALF_H,
     CAMERA_START_ROW,
+    ITEM_DURATIONS,
 } from "../metadata/constants.js";
 import {useRef, useEffect, useState} from "react";
 import {useFrame} from "@react-three/fiber";
@@ -93,6 +94,16 @@ export default function Player({
                 meshRef.current.rotation.z = Math.PI / 2;
             } else return;
 
+            // Update randomDeath moves
+            if (currentEffect?.type === 'randomDeath' && currentEffect.movesLeft !== -1) {
+                const nextMoves = currentEffect.movesLeft - 1;
+                if (nextMoves <= 0) {
+                    setActiveEffect(null);
+                } else {
+                    setActiveEffect({ ...currentEffect, movesLeft: nextMoves });
+                }
+            }
+
             const newX = roundedX + dx;
             const newRow = rowIndex + dy;
 
@@ -113,13 +124,6 @@ export default function Player({
 
             playerPosRef.current = {x: newX, rowIndex: newRow};
             if (onRowChange) onRowChange(newRow);
-
-            if (currentEffect?.type === 'fly' && newRow >= currentEffect.startRow + 5) {
-                setActiveEffect(null);
-            }
-            if (currentEffect?.type === 'walkOnWater' && !riverRowSetRef.current.has(newRow)) {
-                setActiveEffect(null);
-            }
 
             // Chỉ thêm row khi player đã vượt CAMERA_START_ROW
             if (dy > 0 && newRow > maxRowReachedRef.current) {
@@ -170,7 +174,15 @@ export default function Player({
         );
         if (hitItem && activeEffect?.type !== 'fly') {
             hitItem.active = false;
-            setActiveEffect({ ...hitItem.itemEffect, startRow: playerRow });
+            const effectData = { ...hitItem.itemEffect, startRow: playerRow };
+            const duration = ITEM_DURATIONS[effectData.type] || 10;
+            
+            if (effectData.type === 'randomDeath') {
+                effectData.movesLeft = duration;
+            } else {
+                effectData.timeLeft = duration;
+            }
+            setActiveEffect(effectData);
         }
 
         let targetZ = tilesHeight / 2 + tileSize * 0.45;
@@ -209,15 +221,7 @@ export default function Player({
         );
 
         if (hitCar || hitTrain) {
-            if (activeEffect?.type === 'invincible') {
-                if (!iFrameRef.current) {
-                    setActiveEffect(null);
-                    iFrameRef.current = true;
-                    setTimeout(() => {
-                        iFrameRef.current = false;
-                    }, 1000);
-                }
-            } else if (!iFrameRef.current) {
+            if (activeEffect?.type !== 'invincible' && !iFrameRef.current) {
                 die();
                 return;
             }

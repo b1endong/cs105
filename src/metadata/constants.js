@@ -35,7 +35,19 @@ const WAGON_COUNT = 20;
 // Light
 const DAY_DURATION = 60; // giây
 const ORBIT_R = 800; // bán kính ngang của ellipse (screen X)
-const ORBIT_H = 250; // bán kính dọc của ellipse (screen Y) — thấp hơn để gần map hơn
+const ORBIT_H = 250; // bán kính dọc của ellipse (screen Y)
+
+// Items
+const ITEM_DURATIONS = {
+    fly: 3,
+    walkOnWater: 10,
+    invincible: 10,
+    nightVision: -1,
+    reverseControl: 10,
+    randomDeath: 5,
+    foreverNight: -1,
+    fastForward: -1,
+};
 
 export {
     tilesPerRow,
@@ -60,4 +72,5 @@ export {
     DAY_DURATION,
     ORBIT_R,
     ORBIT_H,
+    ITEM_DURATIONS,
 };
