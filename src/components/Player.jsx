@@ -30,6 +30,8 @@ export default function Player({
     activeEffect,
     setActiveEffect,
     characterId,
+    // ─── NEW: ref trỏ đến outer group, để CameraManager đọc world position ───
+    playerRef,
 }) {
     const meshRef = useRef();
     const s = tileSize;
@@ -293,13 +295,21 @@ export default function Player({
 
     return (
         <>
+            {/*
+             * ─── Callback ref: gán cùng lúc cho meshRef (nội bộ) và playerRef (camera) ───
+             * playerRef được truyền từ Game.jsx → Scene → CameraManager dùng getWorldPosition()
+             */}
             <group
-                ref={meshRef}
+                ref={(el) => {
+                    meshRef.current = el;
+                    if (playerRef) playerRef.current = el;
+                }}
                 position={[-50, -250, tilesHeight / 2 + s * 0.45]}
                 rotation={[0, 0, Math.PI]}
             >
                 <CharModel s={s} activeEffect={activeEffect} />
             </group>
+
             {/* Render vụ nổ khi chết */}
             {deathPos && (
                 <DeathExplosion
