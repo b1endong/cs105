@@ -9,7 +9,7 @@ import {
 } from "../metadata/constants.js";
 import {useRef, useEffect, useState} from "react";
 import {useFrame} from "@react-three/fiber";
-import PlayerModel from "../model/PlayerModel.jsx";
+import {CHARACTERS} from "../metadata/characters.js";
 import DeathExplosion from "./DeathAnimation.jsx";
 
 const HALF_ROW = Math.floor(tilesPerRow / 2);
@@ -29,6 +29,7 @@ export default function Player({
     minAllowedRowRef,
     activeEffect,
     setActiveEffect,
+    characterId,
 }) {
     const meshRef = useRef();
     const s = tileSize;
@@ -36,6 +37,11 @@ export default function Player({
     const iFrameRef = useRef(false);
     const maxRowReachedRef = useRef(0);
     const [deathPos, setDeathPos] = useState(null);
+
+    // Lấy Model từ CHARACTERS
+    const charDef =
+        CHARACTERS.find((c) => c.id === characterId) ?? CHARACTERS[0];
+    const CharModel = charDef.Model;
 
     const activeEffectRef = useRef(activeEffect);
     activeEffectRef.current = activeEffect;
@@ -67,17 +73,21 @@ export default function Player({
 
             const currentEffect = activeEffectRef.current;
 
-            if (currentEffect?.type === 'randomDeath' && Math.random() < 0.1) {
+            if (currentEffect?.type === "randomDeath" && Math.random() < 0.1) {
                 die();
                 return;
             }
 
             let actualKey = e.key;
-            if (currentEffect?.type === 'reverseControl') {
-                if (e.key === 'ArrowUp' || e.key === 'w') actualKey = 'ArrowDown';
-                else if (e.key === 'ArrowDown' || e.key === 's') actualKey = 'ArrowUp';
-                else if (e.key === 'ArrowLeft' || e.key === 'a') actualKey = 'ArrowRight';
-                else if (e.key === 'ArrowRight' || e.key === 'd') actualKey = 'ArrowLeft';
+            if (currentEffect?.type === "reverseControl") {
+                if (e.key === "ArrowUp" || e.key === "w")
+                    actualKey = "ArrowDown";
+                else if (e.key === "ArrowDown" || e.key === "s")
+                    actualKey = "ArrowUp";
+                else if (e.key === "ArrowLeft" || e.key === "a")
+                    actualKey = "ArrowRight";
+                else if (e.key === "ArrowRight" || e.key === "d")
+                    actualKey = "ArrowLeft";
             }
 
             if (actualKey === "ArrowUp" || actualKey === "w") {
@@ -95,12 +105,15 @@ export default function Player({
             } else return;
 
             // Update randomDeath moves
-            if (currentEffect?.type === 'randomDeath' && currentEffect.movesLeft !== -1) {
+            if (
+                currentEffect?.type === "randomDeath" &&
+                currentEffect.movesLeft !== -1
+            ) {
                 const nextMoves = currentEffect.movesLeft - 1;
                 if (nextMoves <= 0) {
                     setActiveEffect(null);
                 } else {
-                    setActiveEffect({ ...currentEffect, movesLeft: nextMoves });
+                    setActiveEffect({...currentEffect, movesLeft: nextMoves});
                 }
             }
 
@@ -120,7 +133,7 @@ export default function Player({
                     o.type === "tree" &&
                     o.x === newX * tileSize,
             );
-            if (hitTree && currentEffect?.type !== 'fly') return;
+            if (hitTree && currentEffect?.type !== "fly") return;
 
             playerPosRef.current = {x: newX, rowIndex: newRow};
             if (onRowChange) onRowChange(newRow);
@@ -172,12 +185,12 @@ export default function Player({
                 o.active &&
                 overlaps1D(playerX, playerHalf, o.x, o.width / 2),
         );
-        if (hitItem && activeEffect?.type !== 'fly') {
+        if (hitItem && activeEffect?.type !== "fly") {
             hitItem.active = false;
-            const effectData = { ...hitItem.itemEffect, startRow: playerRow };
+            const effectData = {...hitItem.itemEffect, startRow: playerRow};
             const duration = ITEM_DURATIONS[effectData.type] || 10;
-            
-            if (effectData.type === 'randomDeath') {
+
+            if (effectData.type === "randomDeath") {
                 effectData.movesLeft = duration;
             } else {
                 effectData.timeLeft = duration;
@@ -186,17 +199,15 @@ export default function Player({
         }
 
         let targetZ = tilesHeight / 2 + tileSize * 0.45;
-        if (activeEffect?.type === 'fly') {
+        if (activeEffect?.type === "fly") {
             targetZ += tileSize * 1.5;
         }
 
         if (a.progress < 1) {
             a.progress = Math.min(1, a.progress + delta / MOVE_DURATION);
             const t = a.progress;
-            meshRef.current.position.x =
-                a.startX + (a.targetX - a.startX) * t;
-            meshRef.current.position.y =
-                a.startY + (a.targetY - a.startY) * t;
+            meshRef.current.position.x = a.startX + (a.targetX - a.startX) * t;
+            meshRef.current.position.y = a.startY + (a.targetY - a.startY) * t;
             meshRef.current.position.z =
                 targetZ + Math.sin(t * Math.PI) * tileSize * 0.6;
         } else {
@@ -206,7 +217,7 @@ export default function Player({
         // ── Step 2: Kiểm tra va chạm xe / tàu (từ 70% animation trở đi) ──
         if (a.progress < 0.7) return;
 
-        if (activeEffect?.type === 'fly') return;
+        if (activeEffect?.type === "fly") return;
 
         const hitCar = sameRow.find(
             (o) =>
@@ -221,7 +232,7 @@ export default function Player({
         );
 
         if (hitCar || hitTrain) {
-            if (activeEffect?.type !== 'invincible' && !iFrameRef.current) {
+            if (activeEffect?.type !== "invincible" && !iFrameRef.current) {
                 die();
                 return;
             }
@@ -236,22 +247,21 @@ export default function Player({
             );
 
             if (!onLog) {
-                if (activeEffect?.type !== 'walkOnWater') {
+                if (activeEffect?.type !== "walkOnWater") {
                     if (!iFrameRef.current) die();
                     return;
                 }
             } else {
-
-            // Player đứng yên trên gỗ → trôi theo gỗ
-            const vx = onLog.velocityX || 0;
-            meshRef.current.position.x += vx;
-            // Đồng bộ anim để lần nhấn phím tiếp theo lấy đúng vị trí
-            a.startX = meshRef.current.position.x;
-            a.targetX = meshRef.current.position.x;
-            // Cập nhật x logic theo drift để khi nhảy khỏi gỗ,
-            // roundedX phản ánh đúng vị trí thực tế của player.
-            playerPosRef.current.x =
-                (meshRef.current.position.x + WORLD_OFFSET_X) / tileSize;
+                // Player đứng yên trên gỗ → trôi theo gỗ
+                const vx = onLog.velocityX || 0;
+                meshRef.current.position.x += vx;
+                // Đồng bộ anim để lần nhấn phím tiếp theo lấy đúng vị trí
+                a.startX = meshRef.current.position.x;
+                a.targetX = meshRef.current.position.x;
+                // Cập nhật x logic theo drift để khi nhảy khỏi gỗ,
+                // roundedX phản ánh đúng vị trí thực tế của player.
+                playerPosRef.current.x =
+                    (meshRef.current.position.x + WORLD_OFFSET_X) / tileSize;
                 // Đặt Z lên trên mặt gỗ
                 meshRef.current.position.z =
                     tilesHeight / 2 + s * LOG_HALF_H + s * 0.45;
@@ -288,7 +298,7 @@ export default function Player({
                 position={[-50, -250, tilesHeight / 2 + s * 0.45]}
                 rotation={[0, 0, Math.PI]}
             >
-                <PlayerModel s={s} activeEffect={activeEffect} />
+                <CharModel s={s} activeEffect={activeEffect} />
             </group>
             {/* Render vụ nổ khi chết */}
             {deathPos && (

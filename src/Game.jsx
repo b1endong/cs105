@@ -4,9 +4,12 @@ import Player from "./components/Player.jsx";
 import Map from "./components/Map.jsx";
 import GameOver from "./components/GameOver.jsx";
 import Score from "./components/Score.jsx";
+import CharacterSelect from "./components/CharacterSelect.jsx";
 import {useMap} from "./ultis/useMap.js";
 
 export default function Game() {
+    const [screen, setScreen] = useState("select");
+    const [characterId, setCharacterId] = useState("chicken");
     const [gameOver, setGameOver] = useState(false);
     const [score, setScore] = useState(0);
     const [currentRow, setCurrentRow] = useState(0);
@@ -34,9 +37,15 @@ export default function Game() {
         [rows],
     );
 
+    const handleSelect = useCallback((id) => {
+        setCharacterId(id);
+        setScreen("playing");
+    }, []);
+
     const handleDie = useCallback((finalScore) => {
         setScore(finalScore);
         setGameOver(true);
+        setScreen("gameover");
     }, []);
 
     const handleRestart = useCallback(() => {
@@ -47,10 +56,14 @@ export default function Game() {
     useEffect(() => {
         if (activeEffect && activeEffect.timeLeft !== undefined) {
             const interval = setInterval(() => {
-                setActiveEffect(prev => {
-                    if (prev && prev.timeLeft !== undefined && prev.timeLeft !== -1) {
+                setActiveEffect((prev) => {
+                    if (
+                        prev &&
+                        prev.timeLeft !== undefined &&
+                        prev.timeLeft !== -1
+                    ) {
                         if (prev.timeLeft <= 1) return null;
-                        return { ...prev, timeLeft: prev.timeLeft - 1 };
+                        return {...prev, timeLeft: prev.timeLeft - 1};
                     }
                     return prev;
                 });
@@ -61,34 +74,46 @@ export default function Game() {
 
     const EffectNotification = () => {
         if (!activeEffect) return null;
-        
+
         const color = activeEffect.isBuff ? "#ffff00" : "#ff4444";
-        const typeStr = activeEffect.type.replace(/([A-Z])/g, ' $1').trim().toUpperCase();
-        
+        const typeStr = activeEffect.type
+            .replace(/([A-Z])/g, " $1")
+            .trim()
+            .toUpperCase();
+
         let extraText = "";
-        if (activeEffect.timeLeft !== undefined && activeEffect.timeLeft !== -1) {
+        if (
+            activeEffect.timeLeft !== undefined &&
+            activeEffect.timeLeft !== -1
+        ) {
             extraText = ` (${activeEffect.timeLeft}s)`;
-        } else if (activeEffect.movesLeft !== undefined && activeEffect.movesLeft !== -1) {
+        } else if (
+            activeEffect.movesLeft !== undefined &&
+            activeEffect.movesLeft !== -1
+        ) {
             extraText = ` (${activeEffect.movesLeft} moves)`;
         }
-        
+
         return (
-            <div style={{
-                position: "absolute",
-                top: 20,
-                left: 20,
-                padding: "10px 20px",
-                backgroundColor: "rgba(0, 0, 0, 0.7)",
-                color: color,
-                border: `2px solid ${color}`,
-                borderRadius: "8px",
-                fontFamily: "monospace",
-                fontWeight: "bold",
-                fontSize: "1.2rem",
-                textShadow: "0 0 5px " + color,
-                zIndex: 10
-            }}>
-                {activeEffect.isBuff ? "BUFF" : "DEBUFF"}: {typeStr}{extraText}
+            <div
+                style={{
+                    position: "absolute",
+                    top: 20,
+                    left: 20,
+                    padding: "10px 20px",
+                    backgroundColor: "rgba(0, 0, 0, 0.7)",
+                    color: color,
+                    border: `2px solid ${color}`,
+                    borderRadius: "8px",
+                    fontFamily: "monospace",
+                    fontWeight: "bold",
+                    fontSize: "1.2rem",
+                    textShadow: "0 0 5px " + color,
+                    zIndex: 10,
+                }}
+            >
+                {activeEffect.isBuff ? "BUFF" : "DEBUFF"}: {typeStr}
+                {extraText}
             </div>
         );
     };
@@ -96,25 +121,43 @@ export default function Game() {
     return (
         <div style={{width: "100vw", height: "100vh", position: "relative"}}>
             <EffectNotification />
-            <Scene playerPosRef={playerPosRef} activeEffect={activeEffect}>
-                <Map obstaclesRef={obstaclesRef} rows={rows} activeEffect={activeEffect} />
-                <Player
-                    playerPosRef={playerPosRef}
-                    obstaclesRef={obstaclesRef}
-                    riverRowSet={riverRowsSet}
-                    addRow={addRow}
-                    onDie={handleDie}
-                    onScoreChange={setScore}
-                    onRowChange={setCurrentRow}
-                    minAllowedRowRef={minAllowedRowRef}
-                    activeEffect={activeEffect}
-                    setActiveEffect={setActiveEffect}
-                />
-            </Scene>
+            {screen === "select" && <CharacterSelect onSelect={handleSelect} />}
+            <div
+                style={{
+                    width: "100%",
+                    height: "100%",
+                    visibility: screen === "select" ? "hidden" : "visible",
+                }}
+            >
+                <Scene playerPosRef={playerPosRef} activeEffect={activeEffect}>
+                    <Map
+                        obstaclesRef={obstaclesRef}
+                        rows={rows}
+                        activeEffect={activeEffect}
+                    />
+                    {screen === "playing" && (
+                        <Player
+                            playerPosRef={playerPosRef}
+                            obstaclesRef={obstaclesRef}
+                            riverRowSet={riverRowsSet}
+                            addRow={addRow}
+                            onDie={handleDie}
+                            onScoreChange={setScore}
+                            onRowChange={setCurrentRow}
+                            minAllowedRowRef={minAllowedRowRef}
+                            activeEffect={activeEffect}
+                            setActiveEffect={setActiveEffect}
+                            characterId={characterId}
+                        />
+                    )}
+                </Scene>
+            </div>
 
             <Score score={score} />
 
-            {gameOver && <GameOver score={score} onRestart={handleRestart} />}
+            {screen === "gameover" && (
+                <GameOver score={score} onRestart={handleRestart} />
+            )}
         </div>
     );
 }
