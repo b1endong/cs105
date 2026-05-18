@@ -1,4 +1,4 @@
-export default function PlayerModel({s, activeEffect}) {
+export default function ChickenModel({s, activeEffect}) {
     let cloudColor = null;
     if (activeEffect) {
         cloudColor = activeEffect.isBuff ? "#ffff00" : "#ff0000";
@@ -146,12 +146,12 @@ export default function PlayerModel({s, activeEffect}) {
             {cloudColor && (
                 <mesh position={[0, 0, s * 0.1]}>
                     <sphereGeometry args={[s * 0.55, 16, 16]} />
-                    <meshStandardMaterial 
-                        color={cloudColor} 
-                        emissive={cloudColor} 
-                        emissiveIntensity={1.5} 
-                        transparent={true} 
-                        opacity={0.4} 
+                    <meshStandardMaterial
+                        color={cloudColor}
+                        emissive={cloudColor}
+                        emissiveIntensity={1.5}
+                        transparent={true}
+                        opacity={0.4}
                         depthWrite={false}
                     />
                 </mesh>
