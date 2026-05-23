@@ -101,7 +101,13 @@ export default function TrainRow({rowIndex, metadata, obstaclesRef}) {
     });
 
     const rotZ = direction === -1 ? Math.PI : 0;
-    const signPositions = [-W / 2 + s * 1.5, W / 2 - s * 1.5];
+    const signPositions = [
+        -W / 2 + s * 1.5,
+        -W / 4 + s * 0.5,
+        0,
+        W / 4 - s * 0.5,
+        W / 2 - s * 1.5
+    ];
 
     return (
         <group position={[0, Y, 0]}>

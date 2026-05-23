@@ -40,6 +40,22 @@ export default function CharacterSelect({onSelect}) {
     const [selected, setSelected] = useState("chicken");
     const current = CHARACTERS.find((c) => c.id === selected);
 
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === "Enter") {
+                onSelect(selected);
+            } else if (e.key >= "1" && e.key <= "9") {
+                const index = parseInt(e.key, 10) - 1;
+                if (index >= 0 && index < CHARACTERS.length) {
+                    setSelected(CHARACTERS[index].id);
+                }
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [selected, onSelect]);
+
     return (
         <div
             style={{

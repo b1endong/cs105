@@ -189,17 +189,25 @@ export default function Game() {
         setViewMode(mode);
     }, []);
 
-    // Phím V: cycle qua 4 mode
+    // Phím V: cycle qua 4 mode, Phím 1-4: chọn nhanh mode
     useEffect(() => {
         const handleKey = (e) => {
-            if (e.code !== "KeyV") return;
             if (screen !== "playing") return;
-            setViewMode((prev) => {
-                const idx = CAMERA_MODES.indexOf(prev);
-                const next = CAMERA_MODES[(idx + 1) % CAMERA_MODES.length];
-                cameraModeRef.current = next;
-                return next;
-            });
+            if (e.code === "KeyV") {
+                setViewMode((prev) => {
+                    const idx = CAMERA_MODES.indexOf(prev);
+                    const next = CAMERA_MODES[(idx + 1) % CAMERA_MODES.length];
+                    cameraModeRef.current = next;
+                    return next;
+                });
+            } else if (e.key >= "1" && e.key <= "4") {
+                const idx = parseInt(e.key, 10) - 1;
+                if (idx >= 0 && idx < CAMERA_MODES.length) {
+                    const next = CAMERA_MODES[idx];
+                    cameraModeRef.current = next;
+                    setViewMode(next);
+                }
+            }
         };
         window.addEventListener("keydown", handleKey);
         return () => window.removeEventListener("keydown", handleKey);

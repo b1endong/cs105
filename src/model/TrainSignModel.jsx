@@ -11,8 +11,9 @@ export default function TrainSignModel({s, isWarningRef}) {
         if (isWarningRef.current) {
             const t = performance.now() / 1000;
             const blink = Math.sin(t * 8) > 0;
-            lightL.current.material.emissiveIntensity = blink ? 1.4 : 0.05;
-            lightR.current.material.emissiveIntensity = blink ? 0.05 : 1.4;
+            // Tăng intensity để dễ nhìn hơn ban đêm
+            lightL.current.material.emissiveIntensity = blink ? 5.0 : 0.05;
+            lightR.current.material.emissiveIntensity = blink ? 0.05 : 5.0;
         } else {
             lightL.current.material.emissiveIntensity = 0.05;
             lightR.current.material.emissiveIntensity = 0.05;

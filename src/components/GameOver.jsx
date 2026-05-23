@@ -13,6 +13,16 @@ export default function GameOver({score, deathCause, onRestart}) {
         setHighScore(max_score);
     }, [score]);
 
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === "Enter") {
+                onRestart();
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [onRestart]);
+
     const reasonText = () => {
         switch (deathCause) {
             case "car": return "BE CAREFUL WHEN CROSSING!";
