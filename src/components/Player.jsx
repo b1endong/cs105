@@ -38,7 +38,7 @@ export default function Player({
     const isDeadRef = useRef(false);
     const iFrameRef = useRef(false);
     const maxRowReachedRef = useRef(0);
-    const [deathPos, setDeathPos] = useState(null);
+    const [deathData, setDeathData] = useState(null);
 
     // Lấy Model từ CHARACTERS
     const charDef =
@@ -76,7 +76,7 @@ export default function Player({
             const currentEffect = activeEffectRef.current;
 
             if (currentEffect?.type === "randomDeath" && Math.random() < 0.1) {
-                die();
+                die("explosion");
                 return;
             }
 
@@ -235,7 +235,7 @@ export default function Player({
 
         if (hitCar || hitTrain) {
             if (activeEffect?.type !== "invincible" && !iFrameRef.current) {
-                die();
+                die(hitCar ? "car" : "train");
                 return;
             }
         }
@@ -250,7 +250,7 @@ export default function Player({
 
             if (!onLog) {
                 if (activeEffect?.type !== "walkOnWater") {
-                    if (!iFrameRef.current) die();
+                    if (!iFrameRef.current) die("water");
                     return;
                 }
             } else {
@@ -276,21 +276,24 @@ export default function Player({
                 Math.abs(meshRef.current.position.x + WORLD_OFFSET_X) >
                 HALF_ROW * tileSize + tileSize * 0.5
             ) {
-                die();
+                die("explosion");
             }
         }
     });
 
-    function die() {
+    function die(cause = "explosion") {
         if (isDeadRef.current) return;
         isDeadRef.current = true;
         const pos = meshRef.current.position;
-        setDeathPos([pos.x, pos.y, pos.z]);
+        const rotZ = meshRef.current.rotation.z;
+        setDeathData({ position: [pos.x, pos.y, pos.z], rotation: [0, 0, rotZ], cause });
+        
+        // Always hide the player except for "car" (where it will be flattened in the logic if we want to handle it there, but here we can hide and let the animation show the flattened model).
         meshRef.current.visible = false;
     }
 
     function handleExplosionDone() {
-        onDie(playerPosRef.current.rowIndex);
+        onDie(playerPosRef.current.rowIndex, deathData?.cause || "explosion");
     }
 
     return (
@@ -311,10 +314,14 @@ export default function Player({
             </group>
 
             {/* Render vụ nổ khi chết */}
-            {deathPos && (
+            {deathData && (
                 <DeathExplosion
-                    position={deathPos}
+                    position={deathData.position}
+                    rotation={deathData.rotation}
                     s={s}
+                    cause={deathData.cause}
+                    CharModel={CharModel}
+                    activeEffect={activeEffect}
                     onDone={handleExplosionDone}
                 />
             )}

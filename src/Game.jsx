@@ -169,6 +169,7 @@ export default function Game() {
     const [score, setScore] = useState(0);
     const [currentRow, setCurrentRow] = useState(0);
     const [activeEffect, setActiveEffect] = useState(null);
+    const [deathCause, setDeathCause] = useState("explosion");
 
     const playerPosRef = useRef({x: 0, rowIndex: 0});
     const obstaclesRef = useRef([]);
@@ -225,8 +226,9 @@ export default function Game() {
         setScreen("playing");
     }, []);
 
-    const handleDie = useCallback((finalScore) => {
+    const handleDie = useCallback((finalScore, cause) => {
         setScore(finalScore);
+        if (cause) setDeathCause(cause);
         setGameOver(true);
         setScreen("gameover");
     }, []);
@@ -362,7 +364,7 @@ export default function Game() {
             )}
 
             {screen === "gameover" && (
-                <GameOver score={score} onRestart={handleRestart} />
+                <GameOver score={score} deathCause={deathCause} onRestart={handleRestart} />
             )}
         </div>
     );

@@ -43,11 +43,34 @@ function generatePieces(s, count) {
     }));
 }
 
-// Component 1 mảnh vỡ
-function Piece({piece, s, progressRef}) {
+const WATER_COLORS = [
+    "#4DD0E1",
+    "#00BCD4",
+    "#00ACC1",
+    "#0097A7",
+    "#80DEEA",
+    "#B2EBF2",
+    "#FFFFFF"
+];
+
+// Sinh ngẫu nhiên các vệt nước
+function generateWaterDrops(s, count) {
+    return Array.from({length: count}, (_, i) => ({
+        px: randomBetween(-s * 0.2, s * 0.2),
+        py: randomBetween(-s * 0.2, s * 0.2),
+        pz: -s * 0.45, // Bắt đầu ở mặt nước
+        vx: randomBetween(-s * 3, s * 3),
+        vy: randomBetween(-s * 3, s * 3),
+        vz: randomBetween(s * 4, s * 8),
+        size: randomBetween(s * 0.02, s * 0.08),
+        color: WATER_COLORS[i % WATER_COLORS.length],
+    }));
+}
+
+// Component 1 mảnh vỡ hoặc giọt nước
+function Particle({piece, s, progressRef, isWater}) {
     const meshRef = useRef();
 
-    // Lưu vị trí + góc quay tích lũy trong ref (không trigger re-render)
     const state = useRef({
         px: piece.px,
         py: piece.py,
@@ -64,26 +87,32 @@ function Piece({piece, s, progressRef}) {
 
         const st = state.current;
 
-        // Cập nhật vị trí
-        piece.vz += GRAVITY * delta; // trọng lực
+        piece.vz += GRAVITY * delta; 
         st.px += piece.vx * delta;
         st.py += piece.vy * delta;
         st.pz += piece.vz * delta;
 
-        // Nảy lại khi chạm đất (z < 0)
-        if (st.pz < 0) {
-            st.pz = 0;
-            piece.vz = Math.abs(piece.vz) * 0.35; // bounce
-            piece.vx *= 0.6;
-            piece.vy *= 0.6;
+        // Nảy lại khi chạm đất (tương đối so với group gốc là -s * 0.45)
+        const groundZ = -s * 0.45;
+        if (st.pz < groundZ) {
+            st.pz = groundZ;
+            if (!isWater) {
+                piece.vz = Math.abs(piece.vz) * 0.35; 
+                piece.vx *= 0.6;
+                piece.vy *= 0.6;
+            } else {
+                piece.vz = 0;
+                piece.vx = 0;
+                piece.vy = 0;
+            }
         }
 
-        // Cập nhật rotation
-        st.rx += piece.rx * delta;
-        st.ry += piece.ry * delta;
-        st.rz += piece.rz * delta;
+        if (!isWater) {
+            st.rx += piece.rx * delta;
+            st.ry += piece.ry * delta;
+            st.rz += piece.rz * delta;
+        }
 
-        // Fade out ở cuối đời
         const fadeStart = LIFETIME * 0.6;
         if (p > fadeStart) {
             const opacity = 1 - (p - fadeStart) / (LIFETIME - fadeStart);
@@ -92,31 +121,50 @@ function Piece({piece, s, progressRef}) {
         }
 
         meshRef.current.position.set(st.px, st.py, st.pz);
-        meshRef.current.rotation.set(st.rx, st.ry, st.rz);
+        if (!isWater) {
+            meshRef.current.rotation.set(st.rx, st.ry, st.rz);
+        }
     });
 
     return (
         <mesh ref={meshRef} position={[piece.px, piece.py, piece.pz]}>
             <boxGeometry args={[piece.size, piece.size, piece.size]} />
-            <meshPhongMaterial color={piece.color} />
+            <meshPhongMaterial color={piece.color} flatShading={!isWater} />
         </mesh>
     );
 }
 
-// Component vụ nổ chính
-// Props:
-//   position — [x, y, z] vị trí nhân vật lúc chết
-//   s        — tileSize
-//   onDone   — callback khi animation xong
-export default function DeathExplosion({position, s, onDone}) {
+export default function DeathExplosion({position, rotation, s, onDone, cause = "explosion", CharModel, activeEffect}) {
     const progressRef = useRef(0);
     const doneRef = useRef(false);
+    const modelRef = useRef();
 
-    // Sinh mảnh vỡ 1 lần duy nhất
-    const pieces = useMemo(() => generatePieces(s, 28), []);
+    const isExplosion = cause === "explosion" || cause === "train";
+    const isWater = cause === "water";
+    const isCar = cause === "car";
+
+    // Sinh particles
+    const particles = useMemo(() => {
+        if (isExplosion) return generatePieces(s, 28);
+        if (isWater) return generateWaterDrops(s, 15);
+        return []; // car không có văng mảnh
+    }, [isExplosion, isWater, s]);
 
     useFrame((_, delta) => {
         progressRef.current += delta;
+        
+        if (isCar && modelRef.current && progressRef.current < 0.05) {
+            // Flatten animation (mất ~0.05s để bẹp dí)
+            const t = progressRef.current / 0.05;
+            modelRef.current.scale.set(1 + t * 0.2, 1 + t * 0.2, 1 - t * 0.9);
+            modelRef.current.position.z = -s * 0.4 * t; // Hạ thấp trọng tâm
+        }
+
+        if (isWater && modelRef.current) {
+            // Submerge animation, clamped so it doesn't go below the map
+            modelRef.current.position.z = Math.max(-s * 1.3, modelRef.current.position.z - s * delta * 4);
+        }
+
         if (!doneRef.current && progressRef.current >= LIFETIME) {
             doneRef.current = true;
             if (onDone) onDone();
@@ -125,8 +173,15 @@ export default function DeathExplosion({position, s, onDone}) {
 
     return (
         <group position={position}>
-            {pieces.map((piece, i) => (
-                <Piece key={i} piece={piece} s={s} progressRef={progressRef} />
+            {/* Nếu bị vụ nổ, chỉ hiện mảnh vỡ, không hiện model */}
+            {(isWater || isCar) && CharModel && (
+                <group ref={modelRef} rotation={rotation || [0, 0, Math.PI]}>
+                    <CharModel s={s} activeEffect={activeEffect} />
+                </group>
+            )}
+
+            {particles.map((piece, i) => (
+                <Particle key={i} piece={piece} s={s} progressRef={progressRef} isWater={isWater} />
             ))}
         </group>
     );
